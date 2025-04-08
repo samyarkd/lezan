@@ -65,6 +65,7 @@ export const accounts = createTable(
     refresh_token: d.text(),
     access_token: d.text(),
     expires_at: d.integer(),
+    refresh_token_expires_in: d.text(),
     token_type: d.varchar({ length: 255 }),
     scope: d.varchar({ length: 255 }),
     id_token: d.text(),
