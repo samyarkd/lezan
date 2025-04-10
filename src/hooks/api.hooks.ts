@@ -1,10 +1,13 @@
-import { useMutationState, useQuery } from "@tanstack/react-query";
-import { HTTPException } from "hono/http-exception";
+import { useMutation, useMutationState, useQuery } from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
-import { sendApiRequest } from "~/lib/api.utils";
-import type { FlashcardHistory } from "~/types/api.types";
+import { ClientError, sendApiRequest } from "~/lib/api.utils";
+import {
+  flashcardsInputSchema,
+  type FlashcardsApiInput,
+} from "~/lib/zod/flashcards.zod";
+import type { FlashcardDataPOST, FlashcardHistory } from "~/types/api.types";
 
 // Initialize Hono client
 
@@ -69,35 +72,33 @@ export const useGetQuiz = (quizId: string) => {
 // ------------------------------
 // Flashcards API Hook
 // ------------------------------
-export const useGenFlashcards = () => {
-  // return useMutation({
-  //   mutationKey: ["gen-flashcards"],
-  //   mutationFn: async (input: FlashcardsApiInput) => {
-  //     try {
-  //       // Parse input using Zod schema
-  //       const parsedInput = await flashcardsInputSchema.parseAsync(input);
-  //       // Make API request
-  //       const response = await apiClient.flashcards.$post({
-  //         json: parsedInput,
-  //       });
-  //       // Parse and return response data
-  //       return await response.json();
-  //     } catch (err) {
-  //       if (err instanceof HTTPException) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       if (err instanceof Error) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       throw err;
-  //     }
-  //   },
-  // });
+export const useCreateFlashcard = () => {
+  return useMutation({
+    mutationKey: ["gen-flashcards"],
+    onError: (err) => {
+      if (err instanceof ClientError) {
+        console.error(err.message);
+        toast.error(err.message);
+      }
+      if (err instanceof Error) {
+        console.error(err.message);
+        toast.error(err.message);
+      }
+      throw err;
+    },
+    mutationFn: async (input: FlashcardsApiInput) => {
+      // Parse input using Zod schema
+      const parsedInput = await flashcardsInputSchema.parseAsync(input);
+      // Make API request
+      return await sendApiRequest<FlashcardDataPOST>("/flashcards", {
+        method: "POST",
+        body: parsedInput,
+      });
+    },
+  });
 };
 
-export const useGenFlashcardsState = () =>
+export const useGetFlashcardsState = () =>
   useMutationState({
     filters: {
       mutationKey: ["gen-flashcards"],
@@ -147,7 +148,7 @@ export const useGetFlashcardsHistory = () => {
           method: "GET",
         });
       } catch (err) {
-        if (err instanceof HTTPException) {
+        if (err instanceof ClientError) {
           console.error(err.message);
           toast.error(err.message);
         }

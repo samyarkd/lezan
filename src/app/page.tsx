@@ -1,19 +1,31 @@
 "use client";
 
-import { useEffect } from "react";
-import { experimental_useObject as useObject } from "@ai-sdk/react";
+import AnimatedSticker from "~/components/animated-stickers";
+import { useGetFlashcardsState } from "~/hooks/api.hooks";
+import { CarouselSection } from "./carousel-guide";
+import { PhraseInput } from "./phrase-input";
 
-import { flashcardsOutputSchema } from "~/lib/zod/flashcards.zod";
+const HomePage = () => {
+  const genFlashcardsState = useGetFlashcardsState();
 
-export default function HomePage() {
-  const { object, submit, isLoading, stop } = useObject({
-    api: "/api/test",
-    schema: flashcardsOutputSchema,
-  });
+  if (genFlashcardsState[0]?.status === "pending") {
+    return (
+      <AnimatedSticker
+        title="Cooking your phrase..."
+        desc="Loading flashcards generated from your input phrase"
+        data={{
+          src: "/ass/flashcards.json",
+        }}
+      />
+    );
+  }
 
-  useEffect(() => {
-    submit("hello");
-  }, []);
+  return (
+    <>
+      <CarouselSection />
+      <PhraseInput />
+    </>
+  );
+};
 
-  return <div>heloooo</div>;
-}
+export default HomePage;

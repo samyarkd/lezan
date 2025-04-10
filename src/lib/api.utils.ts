@@ -4,11 +4,11 @@ import type { ResponseData } from "~/types/api.types";
  * Make API calls to the backend and get the response.
  * Throws an error when the API call fails so that the caller can handle it.
  */
-export async function sendApiRequest<T>(
+export async function sendApiRequest<T extends ResponseData<unknown>>(
   path: `/${string}`,
   options: {
     method: "GET" | "POST";
-    body?: BodyInit | null | undefined;
+    body?: unknown;
     params?: Record<string, string>;
   },
 ): Promise<T> {
@@ -29,14 +29,14 @@ export async function sendApiRequest<T>(
 
   const res = await fetch(`/api/v1/${path}`, {
     method: options.method,
-    body: options.body,
+    body: JSON.stringify(options.body),
     headers: {
       "Content-Type": "application/json",
     },
   });
 
   // Parse response even if it'll be used for error details
-  const data: ResponseData<T> = await res.json();
+  const data: T = await res.json();
 
   if (res.ok) {
     return data;
