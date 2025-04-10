@@ -3,6 +3,8 @@ import "~/styles/globals.css";
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
+import { Providers } from "~/components/providers";
+
 export const metadata: Metadata = {
   title: "Lezan | Learn a new phrase/word with AI",
   description:
@@ -30,7 +32,9 @@ export default function RootLayout({
       suppressHydrationWarning={true}
       data-lt-installed="true"
     >
-      <body cz-shortcut-listen="true">{children}</body>
+      <body cz-shortcut-listen="true">
+        <Providers>{children}</Providers>
+      </body>
     </html>
   );
 }

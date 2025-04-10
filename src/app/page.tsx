@@ -16,7 +16,7 @@ export default function HomePage() {
   }, []);
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-emerald-700 p-28 text-center text-2xl font-bold">
+    <main className="flex min-h-screen flex-col items-center justify-center p-28 text-center text-2xl font-bold">
       <h1 className="animate-pulse">Lezano</h1>
       here:
       <code>
