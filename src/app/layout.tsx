@@ -4,6 +4,7 @@ import { type Metadata } from "next";
 import { Geist } from "next/font/google";
 
 import { Providers } from "~/components/providers";
+import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
   title: "Lezan | Learn a new phrase/word with AI",
@@ -22,9 +23,10 @@ const geist = Geist({
   variable: "--font-geist-sans",
 });
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const session = await auth();
   return (
     <html
       lang="en"
@@ -33,7 +35,7 @@ export default function RootLayout({
       data-lt-installed="true"
     >
       <body cz-shortcut-listen="true">
-        <Providers>{children}</Providers>
+        <Providers session={session}>{children}</Providers>
       </body>
     </html>
   );

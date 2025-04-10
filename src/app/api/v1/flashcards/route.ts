@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { desc, eq } from "drizzle-orm";
 
 import { flashcardsInputSchema } from "~/lib/zod/flashcards.zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { flashcardsModel } from "~/server/db/schema";
-import type { FlashcardDataPOST } from "~/types/api.types";
+import type { FlashcardDataPOST, FlashcardHistory } from "~/types/api.types";
 
 export async function POST(
   req: NextRequest,
@@ -41,4 +42,22 @@ export async function POST(
     message: "Flashcard created successfully",
     id: flashcard.id,
   });
+}
+
+export async function GET(
+  _req: NextRequest,
+): Promise<NextResponse<FlashcardHistory>> {
+  const userId = (await auth())?.userId;
+  if (!userId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const flashcards = await db
+    .select({ id: flashcardsModel.id, phrase: flashcardsModel.phrase })
+    .from(flashcardsModel)
+    .where(eq(flashcardsModel.userId, userId))
+    .orderBy(desc(flashcardsModel.createdAt))
+    .limit(10);
+
+  return NextResponse.json({ message: "success", output: flashcards });
 }

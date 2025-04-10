@@ -117,6 +117,10 @@ export const flashcardsModel = createTable("flashcards", (d) => ({
   userId: d.varchar({ length: 255 }),
   phrase: d.varchar({ length: 255 }).notNull(),
   data: d.json().$type<FlashcardAiResult>(),
+  createdAt: d
+    .timestamp({ mode: "date", withTimezone: true })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 }));
 
 export const flashcardsRelations = relations(flashcardsModel, ({ one }) => ({
@@ -129,7 +133,6 @@ export const flashcardsRelations = relations(flashcardsModel, ({ one }) => ({
 // -------------------------------------------- //
 //                     QUIZ                     //
 // -------------------------------------------- //
-// 👇 Add your quiz-related tables here
 export const quizModel = createTable("quiz", (d) => ({
   id: d
     .varchar({ length: 255 })
@@ -140,6 +143,10 @@ export const quizModel = createTable("quiz", (d) => ({
   phrase: d.varchar({ length: 255 }).notNull(),
   status: aiDataStatusEnum().default("created"),
   data: d.json().$type<QuizAiResult>(),
+  createdAt: d
+    .timestamp({ mode: "date", withTimezone: true })
+    .notNull()
+    .default(sql`CURRENT_TIMESTAMP`),
 }));
 
 export const quizRelations = relations(quizModel, ({ one }) => ({
