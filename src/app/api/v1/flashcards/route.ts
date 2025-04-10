@@ -1,5 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
-import { desc, eq } from "drizzle-orm";
+import { and, desc, eq } from "drizzle-orm";
 
 import { flashcardsInputSchema } from "~/lib/zod/flashcards.zod";
 import { auth } from "~/server/auth";
@@ -19,12 +19,34 @@ export async function POST(
     return NextResponse.json(
       {
         message: "phrase is required",
+        output: null,
       },
       { status: 400 },
     );
   }
 
   const { phrase } = parsedResult.data;
+
+  const conditions = [];
+
+  conditions.push(eq(flashcardsModel.phrase, phrase));
+  if (userId) {
+    conditions.push(eq(flashcardsModel.userId, userId));
+  }
+
+  // Check if flashcard already exists for the user with the same phrase
+  const [existingFlashcard] = await db
+    .select({ id: flashcardsModel.id })
+    .from(flashcardsModel)
+    .where(and())
+    .limit(1);
+
+  if (existingFlashcard) {
+    return NextResponse.json({
+      message: "Flashcard already exists",
+      output: { id: existingFlashcard.id },
+    });
+  }
 
   const [flashcard] = await db
     .insert(flashcardsModel)
@@ -40,7 +62,9 @@ export async function POST(
 
   return NextResponse.json({
     message: "Flashcard created successfully",
-    id: flashcard.id,
+    output: {
+      id: flashcard.id,
+    },
   });
 }
 
@@ -49,7 +73,10 @@ export async function GET(
 ): Promise<NextResponse<FlashcardHistory>> {
   const userId = (await auth())?.userId;
   if (!userId) {
-    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+    return NextResponse.json(
+      { message: "Unauthorized", output: null },
+      { status: 401 },
+    );
   }
 
   const flashcards = await db

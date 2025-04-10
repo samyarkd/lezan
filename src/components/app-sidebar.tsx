@@ -20,7 +20,7 @@ export function AppSidebar() {
   return (
     <Sidebar className="bg-background">
       <SidebarHeader>
-        <Link href={"/app"}>
+        <Link href={"/"}>
           <span className="font-semibold">Hi {auth.data?.user?.name}</span>
         </Link>
       </SidebarHeader>
@@ -31,10 +31,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarContent>
             {flashCardsHistory.data?.output?.map((historyItem) => (
-              <Link
-                href={`/app/flashcards/${historyItem.id}`}
-                key={historyItem.id}
-              >
+              <Link href={`/flashcards/${historyItem.id}`} key={historyItem.id}>
                 <Button
                   variant="outline"
                   className="relative flex w-full items-center justify-between"
@@ -58,7 +55,7 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter>
         {/* new Phrase */}
-        <Link href="/app" className="text-center">
+        <Link href="/" className="text-center">
           <Button className="w-full" size="sm">
             New Phrase/Word
           </Button>

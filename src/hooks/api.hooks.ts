@@ -1,4 +1,10 @@
-import { useMutation, useMutationState, useQuery } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
+import {
+  useMutation,
+  useMutationState,
+  useQuery,
+  useQueryClient,
+} from "@tanstack/react-query";
 import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
@@ -73,6 +79,10 @@ export const useGetQuiz = (quizId: string) => {
 // Flashcards API Hook
 // ------------------------------
 export const useCreateFlashcard = () => {
+  const router = useRouter();
+
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationKey: ["gen-flashcards"],
     onError: (err) => {
@@ -85,6 +95,18 @@ export const useCreateFlashcard = () => {
         toast.error(err.message);
       }
       throw err;
+    },
+    onSuccess: (res) => {
+      console.log("ress", res);
+
+      if (res.output?.id) {
+        router.push(`/flashcards/${res.output.id}`);
+      }
+
+      queryClient.invalidateQueries({
+        exact: true,
+        queryKey: ["get-flashcards-history"],
+      });
     },
     mutationFn: async (input: FlashcardsApiInput) => {
       // Parse input using Zod schema

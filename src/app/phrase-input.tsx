@@ -1,5 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
 
 import Typography from "~/components/typography";
 import { Button } from "~/components/ui/button";
@@ -11,7 +10,6 @@ export const PhraseInput = () => {
   const textRef = useRef<HTMLTextAreaElement>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const genFlashcards = useCreateFlashcard();
-  const router = useRouter();
 
   useEffect(() => {
     const saved = localStorage.getItem("draftPhrase") ?? "";
@@ -51,15 +49,9 @@ export const PhraseInput = () => {
     const formData = new FormData(e.currentTarget);
     const phrase = formData.get("phrase") as string;
 
-    genFlashcards
-      .mutateAsync({
-        phrase,
-      })
-      .then((res) => {
-        if (res.output?.id) {
-          router.push(`/app/flashcards/${res.output.id}`);
-        }
-      });
+    genFlashcards.mutate({
+      phrase,
+    });
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
