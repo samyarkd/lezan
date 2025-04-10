@@ -30,7 +30,7 @@ export default function RootLayout({
       suppressHydrationWarning={true}
       data-lt-installed="true"
     >
-      <body>{children}</body>
+      <body cz-shortcut-listen="true">{children}</body>
     </html>
   );
 }

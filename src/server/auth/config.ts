@@ -20,17 +20,12 @@ import {
  */
 declare module "next-auth" {
   interface Session extends DefaultSession {
+    userId: string;
     user: {
       id: string;
-      // ...other properties
-      // role: UserRole;
+      emailVerified: string | null;
     } & DefaultSession["user"];
   }
-
-  // interface User {
-  //   // ...other properties
-  //   // role: UserRole;
-  // }
 }
 
 /**

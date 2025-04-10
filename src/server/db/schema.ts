@@ -1,6 +1,10 @@
+import cuid from "cuid";
 import { relations, sql } from "drizzle-orm";
-import { index, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
+import { index, pgEnum, pgTableCreator, primaryKey } from "drizzle-orm/pg-core";
 import { type AdapterAccount } from "next-auth/adapters";
+
+import type { FlashcardAiResult } from "~/types/flashcards.types";
+import type { QuizAiResult } from "~/types/quiz.types";
 
 /**
  * This is an example of how to use the multi-project schema feature of Drizzle ORM. Use the same
@@ -10,26 +14,10 @@ import { type AdapterAccount } from "next-auth/adapters";
  */
 export const createTable = pgTableCreator((name) => `lezano_${name}`);
 
-export const posts = createTable(
-  "post",
-  (d) => ({
-    id: d.integer().primaryKey().generatedByDefaultAsIdentity(),
-    name: d.varchar({ length: 256 }),
-    createdById: d
-      .varchar({ length: 255 })
-      .notNull()
-      .references(() => users.id),
-    createdAt: d
-      .timestamp({ withTimezone: true })
-      .default(sql`CURRENT_TIMESTAMP`)
-      .notNull(),
-    updatedAt: d.timestamp({ withTimezone: true }).$onUpdate(() => new Date()),
-  }),
-  (t) => [
-    index("created_by_idx").on(t.createdById),
-    index("name_idx").on(t.name),
-  ],
-);
+// -------------------------------------------- //
+//            USER RELATED TABLES               //
+// -------------------------------------------- //
+// 👇 Add your user-related tables here (auth/session/user...)
 
 export const users = createTable("user", (d) => ({
   id: d
@@ -107,3 +95,53 @@ export const verificationTokens = createTable(
   }),
   (t) => [primaryKey({ columns: [t.identifier, t.token] })],
 );
+
+// -------------------------------------------- //
+// 👇 Status, Enum, ...
+const aiDataStatus = ["created", "pending", "complete", "failed"] as const;
+export type AiDataStatus = (typeof aiDataStatus)[number];
+export const aiDataStatusEnum = pgEnum("ai_data_status_enum", aiDataStatus);
+
+// -------------------------------------------- //
+//                  FLASHCARDS                  //
+// -------------------------------------------- //
+// 👇 Add your flashcards-related tables here
+
+export const flashcardsModel = createTable("flashcards", (d) => ({
+  id: d
+    .varchar({ length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => cuid()),
+  status: aiDataStatusEnum().default("created"),
+  userId: d.varchar({ length: 255 }),
+  phrase: d.varchar({ length: 255 }).notNull(),
+  data: d.json().$type<FlashcardAiResult>(),
+}));
+
+export const flashcardsRelations = relations(flashcardsModel, ({ one }) => ({
+  user: one(users, {
+    fields: [flashcardsModel.userId],
+    references: [users.id],
+  }),
+}));
+
+// -------------------------------------------- //
+//                     QUIZ                     //
+// -------------------------------------------- //
+// 👇 Add your quiz-related tables here
+export const quizModel = createTable("quiz", (d) => ({
+  id: d
+    .varchar({ length: 255 })
+    .notNull()
+    .primaryKey()
+    .$defaultFn(() => cuid()),
+  userId: d.varchar({ length: 255 }),
+  phrase: d.varchar({ length: 255 }).notNull(),
+  status: aiDataStatusEnum().default("created"),
+  data: d.json().$type<QuizAiResult>(),
+}));
+
+export const quizRelations = relations(quizModel, ({ one }) => ({
+  user: one(users, { fields: [quizModel.userId], references: [users.id] }),
+}));
