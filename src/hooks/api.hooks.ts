@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   useMutation,
@@ -13,7 +14,11 @@ import {
   flashcardsInputSchema,
   type FlashcardsApiInput,
 } from "~/lib/zod/flashcards.zod";
-import type { FlashcardDataPOST, FlashcardHistory } from "~/types/api.types";
+import type {
+  FlashcardDataPOST,
+  FlashcardHistory,
+  GetAudioResponse,
+} from "~/types/api.types";
 
 // Initialize Hono client
 
@@ -99,11 +104,11 @@ export const useCreateFlashcard = () => {
     onSuccess: (res) => {
       console.log("ress", res);
 
-      if (res.output?.id) {
+      if (res.ok) {
         router.push(`/flashcards/${res.output.id}`);
       }
 
-      queryClient.invalidateQueries({
+      void queryClient.invalidateQueries({
         exact: true,
         queryKey: ["get-flashcards-history"],
       });
@@ -190,32 +195,29 @@ export const useGetFlashcardsHistory = () => {
  * useGenAudio is a hook to generate audio for a given flashcard word.
  */
 export const useGenAudio = () => {
-  // const [speed, setSpeed] = useState<"normal" | "slow">("normal");
-  // return useMutation({
-  //   gcTime: Infinity,
-  //   mutationKey: ["gen-audio", speed],
-  //   mutationFn: async (params: { flashcardId: string; word: string }) => {
-  //     try {
-  //       const response = await apiClient.audio.$get({
-  //         query: { flashcardId: params.flashcardId, word: params.word, speed },
-  //       });
-  //       const buffer = await response.arrayBuffer();
-  //       return new Blob([buffer], { type: "audio/mpeg" });
-  //     } catch (err) {
-  //       if (err instanceof HTTPException) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       if (err instanceof Error) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       throw err;
-  //     }
-  //   },
-  //   onSuccess: () => {
-  //     // switch between slow and normal speed
-  //     setSpeed((prev) => (prev === "normal" ? "slow" : "normal"));
-  //   },
-  // });
+  const [speed, setSpeed] = useState<"normal" | "slow">("normal");
+  return useMutation({
+    gcTime: Infinity,
+    mutationKey: ["gen-audio", speed],
+    mutationFn: async (params: { flashcardId: string; word: string }) => {
+      const response = await sendApiRequest<GetAudioResponse>("/audio", {
+        method: "GET",
+        params: { flashcardId: params.flashcardId, word: params.word, speed },
+      });
+
+      if (response.ok) {
+        const base64 = response.output;
+        const buffer = Buffer.from(base64, "base64url");
+
+        return new Blob([buffer], { type: "audio/mpeg" });
+      }
+    },
+    onError: (error) => {
+      toast.error(error.message);
+    },
+    onSuccess: () => {
+      // switch between slow and normal speed
+      setSpeed((prev) => (prev === "normal" ? "slow" : "normal"));
+    },
+  });
 };

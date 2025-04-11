@@ -18,6 +18,7 @@ export async function POST(
   if (!parsedResult.success) {
     return NextResponse.json(
       {
+        ok: false,
         message: "phrase is required",
         output: null,
       },
@@ -43,6 +44,7 @@ export async function POST(
 
   if (existingFlashcard) {
     return NextResponse.json({
+      ok: false,
       message: "Flashcard already exists",
       output: { id: existingFlashcard.id },
     });
@@ -61,6 +63,7 @@ export async function POST(
   }
 
   return NextResponse.json({
+    ok: true,
     message: "Flashcard created successfully",
     output: {
       id: flashcard.id,
@@ -74,7 +77,7 @@ export async function GET(
   const userId = (await auth())?.userId;
   if (!userId) {
     return NextResponse.json(
-      { message: "Unauthorized", output: null },
+      { ok: false, message: "Unauthorized" },
       { status: 401 },
     );
   }
@@ -86,5 +89,9 @@ export async function GET(
     .orderBy(desc(flashcardsModel.createdAt))
     .limit(10);
 
-  return NextResponse.json({ message: "success", output: flashcards });
+  return NextResponse.json({
+    ok: true,
+    message: "success",
+    output: flashcards,
+  });
 }

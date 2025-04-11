@@ -18,7 +18,10 @@ export async function GET(
   const parsedBody = getQuizParams.safeParse(jsonBody);
 
   if (!parsedBody.success) {
-    return NextResponse.json({ message: "Invalid quiz id" }, { status: 400 });
+    return NextResponse.json(
+      { ok: false, message: "Invalid quiz id" },
+      { status: 400 },
+    );
   }
   const { quiz_id } = parsedBody.data;
 
@@ -34,12 +37,15 @@ export async function GET(
     .where(and(...conditions));
 
   if (!quiz) {
-    return NextResponse.json({ message: "Quiz not found" }, { status: 404 });
+    return NextResponse.json(
+      { ok: false, message: "Quiz not found" },
+      { status: 404 },
+    );
   }
 
   if (quiz.status === "complete" && quiz.data) {
     return NextResponse.json(
-      { message: "Quiz generated successfully", output: quiz.data },
+      { ok: true, message: "Quiz generated successfully", output: quiz.data },
       { status: 200 },
     );
   }
@@ -49,12 +55,12 @@ export async function GET(
     return stream.toTextStreamResponse() as NextResponse<QuizAiResult>;
   } else if (quiz.status === "failed") {
     return NextResponse.json(
-      { message: "Quiz generation failed" },
+      { ok: false, message: "Quiz generation failed" },
       { status: 500 },
     );
   } else {
     return NextResponse.json(
-      { message: "Unhandled quiz status" },
+      { ok: false, message: "Unhandled quiz status" },
       { status: 400 },
     );
   }
