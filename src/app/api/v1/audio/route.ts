@@ -1,5 +1,4 @@
-import type { NextApiRequest } from "next";
-import { NextResponse } from "next/server";
+import { NextResponse, type NextRequest } from "next/server";
 import { eq } from "drizzle-orm";
 
 import { generateAndUploadAudio } from "~/lib/ai/audio.ai";
@@ -9,11 +8,14 @@ import { flashcardsModel } from "~/server/db/schema";
 import type { GetAudioResponse } from "~/types/api.types";
 
 export async function GET(
-  req: NextApiRequest,
+  req: NextRequest,
 ): Promise<NextResponse<GetAudioResponse>> {
   let queryParams;
+
   try {
-    queryParams = audioQuerySchema.parse(req.query);
+    queryParams = audioQuerySchema.parse(
+      Object.fromEntries(req.nextUrl.searchParams.entries()),
+    );
   } catch (err) {
     return NextResponse.json(
       { ok: false, message: "Invalid query parameters" },

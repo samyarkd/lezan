@@ -4,8 +4,11 @@
 import type { FlashcardAiResult } from "./flashcards.types";
 import type { QuizAiResult } from "./quiz.types";
 
+export const error_codes = ["UNKNOWN", "NOT_FOUND"] as const;
+export type ERROR_TYPES = (typeof error_codes)[number];
+
 export type ResponseData<T> =
-  | { ok: false; message: string }
+  | { ok: false; message: string; code?: ERROR_TYPES }
   | { ok: true; message: string; output: T };
 
 // ----------------------------- //

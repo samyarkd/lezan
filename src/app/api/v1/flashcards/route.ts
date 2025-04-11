@@ -44,7 +44,7 @@ export async function POST(
 
   if (existingFlashcard) {
     return NextResponse.json({
-      ok: false,
+      ok: true,
       message: "Flashcard already exists",
       output: { id: existingFlashcard.id },
     });

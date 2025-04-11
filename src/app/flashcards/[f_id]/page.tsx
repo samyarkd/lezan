@@ -1,10 +1,9 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { motion } from "framer-motion";
 import { AudioLines, Dot } from "lucide-react";
-import { useAnimate } from "motion/react";
+import { motion, useAnimate } from "motion/react";
 
 import AnimatedSticker from "~/components/animated-stickers";
 import Typography from "~/components/typography";
@@ -21,15 +20,9 @@ import {
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
-import { useGenAudio, useGenQuiz, useGetFlashcard } from "~/hooks/api.hooks";
+import { useCreateQuiz, useGenAudio, useGetFlashcard } from "~/hooks/api.hooks";
 import { cn } from "~/lib/utils";
-
-function FlashcardsPage() {
-  const params = useParams<{ f_id: string }>();
-  return <div>hello {params.f_id}</div>;
-}
-
-export default FlashcardsPage;
+import { error_codes, type ERROR_TYPES } from "~/types/api.types";
 
 const ReadAudioButton: React.FC<{ flashcardId: string; word: string }> = ({
   flashcardId,
@@ -40,9 +33,12 @@ const ReadAudioButton: React.FC<{ flashcardId: string; word: string }> = ({
     e.stopPropagation();
     try {
       const blob = await mutateAsync({ flashcardId, word });
+      if (!blob) {
+        return;
+      }
       const url = URL.createObjectURL(blob);
       const audio = new Audio(url);
-      audio.play();
+      await audio.play();
     } catch {
       // Error is handled via hook notifications
     }
@@ -60,11 +56,11 @@ const ReadAudioButton: React.FC<{ flashcardId: string; word: string }> = ({
 };
 
 const Flashcard: React.FC<{
-  content: {
+  content: Partial<{
     note: string;
     word: string;
     translation: string;
-  };
+  }>;
   flashcardId: string;
 }> = (props) => {
   const { note, word, translation } = props.content;
@@ -73,98 +69,95 @@ const Flashcard: React.FC<{
   const handleClick = () => setFlip((prev) => !prev);
 
   return (
-    <CarouselItem>
-      <div
-        className="flex items-center justify-center p-5"
-        style={{ perspective: "1000px" }}
+    <div
+      className="flex items-center justify-center p-5"
+      style={{ perspective: "1000px" }}
+    >
+      <motion.div
+        style={{
+          width: "20rem",
+          minHeight: "20rem",
+          position: "relative",
+          transformStyle: "preserve-3d",
+        }}
+        animate={{ rotateY: flip ? 0 : 180 }}
+        transition={{ duration: 0.7 }}
       >
-        <motion.div
+        <Dot
+          className="absolute top-0 left-1/2 z-10 -translate-1/2 text-lime-600"
+          size={50}
+        />
+        <div
+          className="front"
           style={{
-            width: "20rem",
-            minHeight: "20rem",
-            position: "relative",
-            transformStyle: "preserve-3d",
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            backfaceVisibility: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
           }}
-          animate={{ rotateY: flip ? 0 : 180 }}
-          transition={{ duration: 0.7 }}
         >
-          <Dot
-            className="absolute top-0 left-1/2 z-10 -translate-1/2 text-lime-600"
-            size={50}
-          />
-          <div
-            className="front"
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              backfaceVisibility: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              cursor: "pointer",
-            }}
+          <Card
+            onClick={handleClick}
+            className="flex h-full w-full flex-col items-center justify-between text-center"
           >
-            <Card
-              onClick={handleClick}
-              className="flex h-full w-full flex-col items-center justify-between text-center"
-            >
-              <CardHeader>
-                <Typography variant="h1">Word</Typography>
-              </CardHeader>
-              <CardContent>
-                <Typography variant="p">{word}</Typography>
-              </CardContent>
-              <CardFooter>
+            <CardHeader>
+              <Typography variant="h1">Word</Typography>
+            </CardHeader>
+            <CardContent>
+              <Typography variant="p">{word}</Typography>
+            </CardContent>
+            <CardFooter>
+              {word && (
                 <ReadAudioButton flashcardId={flashcardId} word={word} />
-              </CardFooter>
-            </Card>
-          </div>
-          <div
-            className="back"
-            style={{
-              position: "absolute",
-              width: "100%",
-              height: "100%",
-              backfaceVisibility: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              transform: "rotateY(180deg)",
-              cursor: "pointer",
-            }}
+              )}
+            </CardFooter>
+          </Card>
+        </div>
+        <div
+          className="back"
+          style={{
+            position: "absolute",
+            width: "100%",
+            height: "100%",
+            backfaceVisibility: "hidden",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transform: "rotateY(180deg)",
+            cursor: "pointer",
+          }}
+        >
+          <Card
+            onClick={handleClick}
+            className="flex h-full w-full flex-col items-center justify-between text-center"
           >
-            <Card
-              onClick={handleClick}
-              className="flex h-full w-full flex-col items-center justify-between text-center"
-            >
-              <CardHeader>
-                <Typography variant="h1">Translation</Typography>
-              </CardHeader>
-              <CardContent>
-                <Typography variant="p">{translation}</Typography>
-              </CardContent>
-              <CardFooter className="flex flex-col">
-                <Typography variant="muted">{note}</Typography>
-              </CardFooter>
-            </Card>
-          </div>
-        </motion.div>
-      </div>
-    </CarouselItem>
+            <CardHeader>
+              <Typography variant="h1">Translation</Typography>
+            </CardHeader>
+            <CardContent>
+              <Typography variant="p">{translation}</Typography>
+            </CardContent>
+            <CardFooter className="flex flex-col">
+              <Typography variant="muted">{note}</Typography>
+            </CardFooter>
+          </Card>
+        </div>
+      </motion.div>
+    </div>
   );
 };
 
 const Flashcards = () => {
-  // REQUIRED AUTHENTICATION
-  // useSession({ required: true });
-
   // PARAMS
-  const { flashcards_id } = useParams<{ flashcards_id: string }>();
+  const { f_id } = useParams<{ f_id: string }>();
 
   // API HOOKS
-  const flashcards = useGetFlashcard(flashcards_id);
-  const generateQuiz = useGenQuiz();
+  const flashcardsQuery = useGetFlashcard(f_id);
+  const generateQuiz = useCreateQuiz();
 
   // STATE HOOKS
   const [api, setApi] = useState<CarouselApi>();
@@ -175,16 +168,43 @@ const Flashcards = () => {
   const [scope, animate] = useAnimate();
 
   // OTHERS
-  const navigate = useRouter();
+  const router = useRouter();
 
-  const isLastCard = current === (flashcards.data?.items.length || 0);
+  const flashcards = flashcardsQuery.object;
+  const flashcardsItems = flashcards?.items;
+  const isLastCard = current === (flashcardsItems?.length ?? 0);
+  const phrase = flashcards?.phrase;
+
+  const errorCode: ERROR_TYPES = useMemo(() => {
+    try {
+      if (flashcardsQuery.error) {
+        const parsed = JSON.parse(flashcardsQuery.error.message);
+        const code = parsed.code;
+
+        if (error_codes.includes(code)) {
+          return code;
+        }
+
+        return "UNKNOWN";
+      }
+      return;
+    } catch (error) {
+      return "UNKNOWN";
+    }
+  }, [flashcardsQuery.error]);
 
   useEffect(() => {
-    if (!flashcards.isSuccess) {
+    if (errorCode === "NOT_FOUND") {
+      router.push("/");
+    }
+  }, [errorCode]);
+
+  useEffect(() => {
+    if (!flashcardsQuery.isLoading) {
       return;
     }
 
-    const newLeft = `${(current * 100) / (flashcards.data?.items.length || 1)}%`;
+    const newLeft = `${(current * 100) / (flashcardsItems?.length ?? 1)}%`;
 
     animate(
       scope.current,
@@ -202,6 +222,10 @@ const Flashcards = () => {
       },
     );
   }, [current]);
+
+  useEffect(() => {
+    flashcardsQuery.submit({ flashcards_id: f_id });
+  }, []);
 
   useEffect(() => {
     if (!api) {
@@ -224,48 +248,51 @@ const Flashcards = () => {
     return () => {
       api.off("select", updateStates);
     };
-  }, [api, flashcards.isSuccess, flashcards.data?.items.length]);
+  }, [api, !flashcardsQuery.error, flashcardsItems?.length]);
 
   async function handleGoToQuiz() {
-    const generatedQuiz = flashcards.data?.phrase
-      ? await generateQuiz.mutateAsync({ phrase: flashcards.data.phrase })
-      : undefined;
-
-    navigate(`/app/quiz/${generatedQuiz?.id}`);
+    // const generatedQuiz = flashcards?.name
+    //   ? await generateQuiz.mutateAsync({ phrase: flashcardsQuery.data.phrase })
+    //   : undefined;
+    // router.push(`/app/quiz/${generatedQuiz?.id}`);
   }
 
-  if (flashcards.isPending) {
+  if (flashcardsQuery.isLoading) {
     return (
       <AnimatedSticker
         title="Fetching"
         desc="Hold on a second, loading the data"
         data={{
-          raw: RunningDogAss,
+          src: "/ass/running_dog.json",
         }}
       />
     );
   }
 
-  if (generateQuiz?.status === "pending") {
-    return (
-      <AnimatedSticker
-        title="Gnerating a quiz..."
-        desc="Hang tight! We're creating your quiz..."
-        data={{
-          raw: MathingAss,
-        }}
-      />
-    );
-  }
+  // if (generateQuiz?.status === "pending") {
+  //   return (
+  //     <AnimatedSticker
+  //       title="Gnerating a quiz..."
+  //       desc="Hang tight! We're creating your quiz..."
+  //       data={{
+  //         raw: MathingAss,
+  //       }}
+  //     />
+  //   );
+  // }
 
   return (
     <div className="isolate my-auto flex w-full max-w-2xl flex-col justify-center gap-4 px-4 pt-4">
       <Carousel setApi={setApi} className="relative w-full max-w-2xl">
         <CarouselContent>
-          {flashcards.isSuccess &&
-            flashcards.data?.items.map((i, idx) => (
-              <Flashcard key={idx} content={i} flashcardId={flashcards_id} />
-            ))}
+          {!flashcardsQuery.error &&
+            flashcardsItems
+              ?.filter((v) => !!v)
+              ?.map((i, idx) => (
+                <CarouselItem key={idx}>
+                  <Flashcard content={i} flashcardId={f_id} />
+                </CarouselItem>
+              ))}
         </CarouselContent>
       </Carousel>
       <div className="mb-32 flex flex-col gap-4 text-center">
@@ -303,10 +330,14 @@ const Flashcards = () => {
         ref={scope}
       >
         {(isMoving || !isLastCard) && (
-          <AnimatedSticker responsive data={{ raw: SleepyDogAss }} />
+          <AnimatedSticker responsive data={{ src: "/ass/sleepy_dog.json" }} />
         )}
         {!isMoving && isLastCard && (
-          <AnimatedSticker responsive flipH data={{ raw: WavingDogAss }} />
+          <AnimatedSticker
+            responsive
+            flipH
+            data={{ src: "/ass/waving_dog.json" }}
+          />
         )}
       </div>
     </div>

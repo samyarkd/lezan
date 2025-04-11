@@ -39,16 +39,18 @@ import { NextResponse, type NextRequest } from "next/server";
 import { and, eq } from "drizzle-orm";
 
 import { generateFlashcards } from "~/lib/ai/flashcards.ai";
-import { getFlashcardsParams } from "~/lib/zod/flashcards.zod";
+import {
+  flashcardsOutputSchema,
+  getFlashcardsParams,
+} from "~/lib/zod/flashcards.zod";
 import { auth } from "~/server/auth";
 import { db } from "~/server/db";
 import { flashcardsModel } from "~/server/db/schema";
 import type { FlashcardDataGET } from "~/types/api.types";
-import type { FlashcardAiResult } from "~/types/flashcards.types";
 
-export async function GET(
+export async function POST(
   req: NextRequest,
-): Promise<NextResponse<FlashcardDataGET>> {
+): Promise<FlashcardDataGET | Response> {
   const userId = (await auth())?.userId;
 
   const jsonBody = await req.json();
@@ -56,7 +58,7 @@ export async function GET(
 
   if (!parsedBody.success) {
     return NextResponse.json(
-      { message: "Invalid flashcard id" },
+      { ok: false, message: "Invalid flashcard id" },
       { status: 400 },
     );
   }
@@ -75,29 +77,65 @@ export async function GET(
 
   if (!flashcard) {
     return NextResponse.json(
-      { message: "Flashcard not found" },
+      { ok: false, message: "Flashcard not found", code: "NOT_FOUND" },
       { status: 404 },
     );
   }
 
+  // ------------🟢 COMPLETED 🟢------------- //
   if (flashcard.status === "complete" && flashcard.data) {
-    return NextResponse.json(
-      { message: "flashcards generated successfully", output: flashcard.data },
-      { status: 200 },
-    );
+    return NextResponse.json(flashcard.data, {
+      status: 208,
+    });
   }
 
+  // ------------🟡 Pending 🟡------------- //
+  if (flashcard?.status === "pending" && flashcard.data) {
+    const parsedData = flashcardsOutputSchema.safeParse(flashcard.data);
+    if (parsedData.success) {
+      // ------------🟢 COMPLETED 🟢------------- //
+      await db
+        .update(flashcardsModel)
+        .set({ status: "complete" })
+        .where(eq(flashcardsModel.id, flashcard.id));
+
+      return NextResponse.json(parsedData.data, {
+        status: 208,
+      });
+    } else {
+      // ------------🔴 Failed 🔴------------- //
+      await db
+        .update(flashcardsModel)
+        .set({ status: "failed" })
+        .where(eq(flashcardsModel.id, flashcard.id));
+
+      return NextResponse.json(
+        { ok: false, message: "Invalid flashcard data in pending state" },
+        { status: 500 },
+      );
+    }
+  }
+
+  // ------------🔵 Stream 🔵------------- //
   if (flashcard?.status === "created") {
+    await db
+      .update(flashcardsModel)
+      .set({ status: "pending" })
+      .where(eq(flashcardsModel.id, flashcard.id));
+
     const stream = await generateFlashcards(flashcard.phrase, flashcard.id);
-    return stream.toTextStreamResponse() as NextResponse<FlashcardAiResult>;
+    return stream.toTextStreamResponse({
+      statusText: "STREAM_STUFF",
+    });
   } else if (flashcard?.status === "failed") {
+    // ------------🔴 Failed 🔴------------- //
     return NextResponse.json(
-      { message: "Flashcard generation failed" },
+      { ok: false, message: "Flashcard generation failed" },
       { status: 500 },
     );
   } else {
     return NextResponse.json(
-      { message: "Unhandled flashcard status" },
+      { ok: false, message: "Unhandled flashcard status" },
       { status: 400 },
     );
   }

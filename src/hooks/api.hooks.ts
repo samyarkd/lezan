@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { experimental_useObject as useObject } from "@ai-sdk/react";
 import {
   useMutation,
   useMutationState,
@@ -12,6 +13,7 @@ import { toast } from "sonner";
 import { ClientError, sendApiRequest } from "~/lib/api.utils";
 import {
   flashcardsInputSchema,
+  flashcardsOutputSchema,
   type FlashcardsApiInput,
 } from "~/lib/zod/flashcards.zod";
 import type {
@@ -26,7 +28,7 @@ import type {
 // Quiz API Hook
 // ------------------------------
 
-export const useGenQuiz = () => {
+export const useCreateQuiz = () => {
   // return useMutation({
   //   mutationKey: ["gen-quiz"],
   //   mutationFn: async (input: QuizApiInput) => {
@@ -102,8 +104,7 @@ export const useCreateFlashcard = () => {
       throw err;
     },
     onSuccess: (res) => {
-      console.log("ress", res);
-
+      console.log("res", res);
       if (res.ok) {
         router.push(`/flashcards/${res.output.id}`);
       }
@@ -133,30 +134,26 @@ export const useGetFlashcardsState = () =>
     select: (mutation) => mutation.state,
   });
 
+/**
+ * Retrieves a flashcard by its unique identifier.
+ *
+ * This hook utilizes the useObject function to fetch data from the API endpoint:
+ * `/api/v1/flashcards/{flashcardId}`, validating the response against the defined
+ * flashcardsOutputSchema.
+ *
+ * @param flashcardId - The unique identifier of the flashcard to be retrieved.
+ * @returns An object managed by useObject containing the flashcard data, along with its
+ *          loading and error states as applicable.
+ *
+ * @example
+ * // Usage example:
+ * const flashcardData = useGetFlashcard("abc123");
+ */
 export const useGetFlashcard = (flashcardId: string) => {
-  // return useQuery({
-  //   queryKey: ["get-flashcard", flashcardId],
-  //   queryFn: async () => {
-  //     try {
-  //       const response = await apiClient.flashcards.$get({
-  //         query: { flashcards_id: flashcardId },
-  //       });
-  //       const data = await response.json();
-  //       return data;
-  //     } catch (err) {
-  //       if (err instanceof HTTPException) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       if (err instanceof Error) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       throw err;
-  //     }
-  //   },
-  //   enabled: Boolean(flashcardId),
-  // });
+  return useObject({
+    api: `/api/v1/flashcards/${flashcardId}`,
+    schema: flashcardsOutputSchema,
+  });
 };
 
 /**
@@ -196,6 +193,7 @@ export const useGetFlashcardsHistory = () => {
  */
 export const useGenAudio = () => {
   const [speed, setSpeed] = useState<"normal" | "slow">("normal");
+
   return useMutation({
     gcTime: Infinity,
     mutationKey: ["gen-audio", speed],
@@ -206,8 +204,7 @@ export const useGenAudio = () => {
       });
 
       if (response.ok) {
-        const base64 = response.output;
-        const buffer = Buffer.from(base64, "base64url");
+        const buffer = Buffer.from(response.output, "base64url");
 
         return new Blob([buffer], { type: "audio/mpeg" });
       }
