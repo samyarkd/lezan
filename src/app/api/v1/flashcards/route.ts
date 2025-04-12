@@ -39,7 +39,7 @@ export async function POST(
   const [existingFlashcard] = await db
     .select({ id: flashcardsModel.id })
     .from(flashcardsModel)
-    .where(and())
+    .where(and(...conditions))
     .limit(1);
 
   if (existingFlashcard) {
