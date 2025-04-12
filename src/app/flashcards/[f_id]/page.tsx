@@ -173,7 +173,6 @@ const Flashcards = () => {
   const flashcards = flashcardsQuery.object;
   const flashcardsItems = flashcards?.items;
   const isLastCard = current === (flashcardsItems?.length ?? 0);
-  const phrase = flashcards?.phrase;
 
   const errorCode: ERROR_TYPES = useMemo(() => {
     try {
@@ -258,7 +257,7 @@ const Flashcards = () => {
     }
   }
 
-  if (flashcardsQuery.isLoading) {
+  if (flashcardsQuery.isLoading || !flashcardsQuery.object) {
     return (
       <AnimatedSticker
         title="Fetching"

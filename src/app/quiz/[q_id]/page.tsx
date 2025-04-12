@@ -10,6 +10,7 @@ import { Button } from "~/components/ui/button";
 import { useGetQuiz } from "~/hooks/api.hooks";
 import { isFinishedAtom } from "~/lib/storage/global.atom";
 import { quizOutputSchema } from "~/lib/zod/quiz.zod";
+import { error_codes, type ERROR_TYPES } from "~/types/api.types";
 
 const QuizPage = () => {
   // REQUIRED AUTHENTICATION
@@ -31,12 +32,38 @@ const QuizPage = () => {
     return quizOutputSchema.safeParse(quizQuery.object);
   }, [quizQuery.isLoading]);
 
+  const errorCode: ERROR_TYPES = useMemo(() => {
+    try {
+      if (quizQuery.error) {
+        const parsed = JSON.parse(quizQuery.error.message);
+        const code = parsed.code;
+
+        if (error_codes.includes(code)) {
+          return code;
+        }
+
+        return "UNKNOWN";
+      }
+      return;
+    } catch (error) {
+      return "UNKNOWN";
+    }
+  }, [quizQuery.error]);
+
+  // ---------- USEEFFECTS ------------- //
   useEffect(() => {
     quizQuery.submit({ quiz_id: q_id });
+
     return () => {
       setIsFinished(false);
     };
   }, []);
+
+  useEffect(() => {
+    if (errorCode === "NOT_FOUND") {
+      router.push("/");
+    }
+  }, [errorCode]);
 
   useEffect(() => {
     if (!quizQuery.isLoading && quizQuery.error && !quizParsed.success) {
@@ -44,7 +71,7 @@ const QuizPage = () => {
     }
   }, [quizQuery.isLoading, quizParsed.success]);
 
-  if (quizQuery.isLoading) {
+  if (quizQuery.isLoading || !quizQuery.object) {
     return (
       <AnimatedSticker
         data={{
@@ -76,10 +103,7 @@ const QuizPage = () => {
               src: "/ass/party.json",
             }}
           />
-          <Button
-            className="mx-auto w-full"
-            onClick={() => router.push("/app")}
-          >
+          <Button className="mx-auto w-full" onClick={() => router.push("/")}>
             New Phrase/Word
           </Button>
           <Button

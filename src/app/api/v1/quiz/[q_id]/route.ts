@@ -36,7 +36,7 @@ export async function POST(req: NextRequest): Promise<QuizDataGET | Response> {
 
   if (!quiz) {
     return NextResponse.json(
-      { ok: false, message: "Quiz not found" },
+      { ok: false, message: "Quiz not found", code: "NOT_FOUND" },
       { status: 404 },
     );
   }
@@ -45,8 +45,6 @@ export async function POST(req: NextRequest): Promise<QuizDataGET | Response> {
   if (quiz.status === "complete" && quiz.data) {
     return NextResponse.json(quiz.data, { status: 200 });
   }
-
-  console.log("stat", quiz);
 
   // ------------🟡 PENDING 🟡------------- //
   if (quiz.status === "pending" && quiz.data) {

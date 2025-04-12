@@ -20,7 +20,7 @@ Instructions:
 }`;
 
   const response = streamObject({
-    model: openaiSDK("gpt-4-turbo"),
+    model: openaiSDK("o3-mini", { reasoningEffort: "low" }),
     prompt,
     schema: quizOutputSchema,
     async onFinish(event) {
