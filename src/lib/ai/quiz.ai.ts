@@ -16,17 +16,7 @@ Instructions:
 1. Construct a set of 10 multiple-choice questions.
 2. Vary the question types (e.g., translation, fill-in-the-blank, conjugation).
 3. For each question provide 3-4 options and indicate the correct answer by its index.
-  
-Output Format (in JSON):
-{
-  "questions": [
-    {
-      "question": "Question text?",
-      "options": ["Option 1", "Option 2", "Option 3", "Option 4"],
-      "correct_answer_index": 1
-    }
-    // ... additional questions
-  ]
+4. Ensure the questions are relevant to the phrase provided and challenge the learner's understanding of the language.
 }`;
 
   const response = streamObject({

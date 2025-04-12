@@ -17,10 +17,16 @@ import {
   flashcardsOutputSchema,
   type FlashcardsApiInput,
 } from "~/lib/zod/flashcards.zod";
+import {
+  quizInputSchema,
+  quizOutputSchema,
+  type QuizApiInput,
+} from "~/lib/zod/quiz.zod";
 import type {
   FlashcardDataPOST,
   FlashcardHistory,
   GetAudioResponse,
+  QuizDataPOST,
 } from "~/types/api.types";
 
 // Initialize Hono client
@@ -30,57 +36,42 @@ import type {
 // ------------------------------
 
 export const useCreateQuiz = () => {
-  // return useMutation({
-  //   mutationKey: ["gen-quiz"],
-  //   mutationFn: async (input: QuizApiInput) => {
-  //     try {
-  //       // Parse input using Zod schema
-  //       const parsedInput = await quizInputSchema.parseAsync(input);
-  //       // Make API request
-  //       const response = await sendApiRequest('',{
-  //         json: parsedInput,
-  //       });
-  //       // Parse and return response data
-  //       return await response.json();
-  //     } catch (err) {
-  //       if (err instanceof HTTPException) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       if (err instanceof Error) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       throw err;
-  //     }
-  //   },
-  // });
+  const router = useRouter();
+  return useMutation({
+    mutationKey: ["gen-quiz"],
+    mutationFn: async (input: QuizApiInput) => {
+      // Parse input using Zod schema
+      const parsedInput = await quizInputSchema.parseAsync(input);
+      // Make API request
+      return await sendApiRequest<QuizDataPOST>("/quiz", {
+        body: parsedInput,
+        method: "POST",
+      });
+    },
+    onError: (err) => {
+      if (err instanceof ClientError) {
+        console.error(err.message);
+        toast.error(err.message);
+      }
+      if (err instanceof Error) {
+        console.error(err.message);
+        toast.error(err.message);
+      }
+      throw err;
+    },
+    onSuccess: (res) => {
+      if (res.ok) {
+        router.push(`/quiz/${res.output.id}`);
+      }
+    },
+  });
 };
 
 export const useGetQuiz = (quizId: string) => {
-  // return useQuery({
-  //   queryKey: ["get-quiz", quizId],
-  //   queryFn: async () => {
-  //     try {
-  //       const response = await apiClient.quiz.$get({
-  //         query: { quiz_id: quizId },
-  //       });
-  //       const data = await response.json();
-  //       return data;
-  //     } catch (err) {
-  //       if (err instanceof HTTPException) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       if (err instanceof Error) {
-  //         console.error(err.message);
-  //         toast.error(err.message);
-  //       }
-  //       throw err;
-  //     }
-  //   },
-  //   enabled: Boolean(quizId),
-  // });
+  return useObject({
+    api: `/api/v1/quiz/${quizId}`,
+    schema: quizOutputSchema,
+  });
 };
 
 // ------------------------------
@@ -105,7 +96,6 @@ export const useCreateFlashcard = () => {
       throw err;
     },
     onSuccess: (res) => {
-      console.log("res", res);
       if (res.ok) {
         router.push(`/flashcards/${res.output.id}`);
       }

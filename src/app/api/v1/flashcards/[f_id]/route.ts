@@ -117,7 +117,7 @@ export async function POST(
   }
 
   // ------------🔵 Stream 🔵------------- //
-  if (flashcard?.status === "created") {
+  if (flashcard?.status === "created" || flashcard.status === "pending") {
     await db
       .update(flashcardsModel)
       .set({ status: "pending" })

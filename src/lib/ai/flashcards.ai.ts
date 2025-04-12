@@ -30,7 +30,6 @@ export async function generateFlashcards(phrase: string, f_id: string) {
         .update(flashcardsModel)
         .set({
           data,
-          userId,
           phrase,
         })
         .where(and(...conditions))

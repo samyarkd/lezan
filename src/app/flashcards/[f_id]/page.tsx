@@ -251,10 +251,11 @@ const Flashcards = () => {
   }, [api, !flashcardsQuery.error, flashcardsItems?.length]);
 
   async function handleGoToQuiz() {
-    // const generatedQuiz = flashcards?.name
-    //   ? await generateQuiz.mutateAsync({ phrase: flashcardsQuery.data.phrase })
-    //   : undefined;
-    // router.push(`/app/quiz/${generatedQuiz?.id}`);
+    if (flashcards?.phrase) {
+      await generateQuiz.mutateAsync({
+        phrase: flashcards.phrase,
+      });
+    }
   }
 
   if (flashcardsQuery.isLoading) {
@@ -269,17 +270,17 @@ const Flashcards = () => {
     );
   }
 
-  // if (generateQuiz?.status === "pending") {
-  //   return (
-  //     <AnimatedSticker
-  //       title="Gnerating a quiz..."
-  //       desc="Hang tight! We're creating your quiz..."
-  //       data={{
-  //         raw: MathingAss,
-  //       }}
-  //     />
-  //   );
-  // }
+  if (generateQuiz?.status === "pending") {
+    return (
+      <AnimatedSticker
+        title="Gnerating a quiz..."
+        desc="Hang tight! We're creating your quiz..."
+        data={{
+          src: "/ass/mathing.json",
+        }}
+      />
+    );
+  }
 
   return (
     <div className="isolate my-auto flex w-full max-w-2xl flex-col justify-center gap-4 px-4 pt-4">

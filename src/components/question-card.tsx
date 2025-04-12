@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
-
 import { useSetAtom } from "jotai";
+import { shuffle } from "lodash";
 import { CheckCircle2, XCircle } from "lucide-react";
+import type { z } from "zod";
 
 import { Button } from "~/components/ui/button";
 import {
@@ -11,19 +12,11 @@ import {
   CardHeader,
 } from "~/components/ui/card";
 import { Progress } from "~/components/ui/progress";
+import { isFinishedAtom } from "~/lib/storage/global.atom";
 import { cn } from "~/lib/utils";
-import { isFinishedAtom } from "~/pages/quiz";
+import { type quizOutputSchema } from "~/lib/zod/quiz.zod";
 
-interface Question {
-  correct_answer_index: number;
-  question: string;
-  options: string[];
-}
-
-interface QuestionCardProps {
-  questions: Question[];
-  phrase: string;
-}
+type QuestionCardProps = z.infer<typeof quizOutputSchema>;
 
 export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -34,12 +27,11 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
   const [progress, setProgress] = useState(0);
   const setIsFinished = useSetAtom(isFinishedAtom);
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = questions?.[currentQuestionIndex];
 
-  // Add memoized shuffled options for current question
   const shuffledOptions = useMemo(() => {
-    return [...currentQuestion.options].sort(() => Math.random() - 0.5);
-  }, [currentQuestion]);
+    return currentQuestion?.options ? shuffle(currentQuestion.options) : [];
+  }, [currentQuestion?.question]);
 
   const handleOptionSelect = (option: string) => {
     if (isAnswerChecked) return;
@@ -49,13 +41,16 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
   const checkAnswer = () => {
     if (selectedOption === null) return;
 
-    const selectedOptionData = currentQuestion.options.find(
+    const selectedOptionData = currentQuestion?.options?.find(
       (option) => option === selectedOption,
     );
 
     const correct =
       selectedOptionData ===
-        currentQuestion.options[currentQuestion.correct_answer_index] || false;
+        currentQuestion?.options?.at(
+          currentQuestion?.correct_answer_index ?? 0,
+        ) || false;
+
     setIsCorrect(correct);
     setIsAnswerChecked(true);
     if (!correct) {
@@ -67,11 +62,11 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
     // Calculate new progress
     const newProgress = Math.min(
       100,
-      ((currentQuestionIndex + 1) / questions.length) * 100,
+      ((currentQuestionIndex + 1) / (questions?.length ?? 0)) * 100,
     );
     setProgress(newProgress);
 
-    if (currentQuestionIndex < questions.length - 1) {
+    if (currentQuestionIndex < (questions?.length ?? 0) - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(null);
       setIsAnswerChecked(false);
@@ -82,14 +77,14 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
   };
 
   const checkCorrect = (option: string) =>
-    option === currentQuestion.options[currentQuestion.correct_answer_index];
+    option === currentQuestion?.options[currentQuestion.correct_answer_index];
 
   return (
-    <Card className="w-full shadow-lg sm:min-w-md lg:min-w-4xl m">
+    <Card className="m w-full shadow-lg sm:min-w-md lg:min-w-4xl">
       <CardHeader className="border-b pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-white">
+            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full text-white">
               {currentQuestionIndex + 1}
             </div>
             <Progress value={progress} className="h-2 w-24" />
@@ -99,32 +94,32 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
             title="number of wrong answers"
           >
             <div className="flex h-6 w-6 items-center justify-center rounded-full bg-white">
-              <span className="text-xs text-destructive">❗</span>
+              <span className="text-destructive text-xs">❗</span>
             </div>
             <span className="text-sm font-medium">{wrongAnswers}</span>
           </div>
         </div>
       </CardHeader>
       <CardContent className="pt-6">
-        <div className="mb-6 text-center flex flex-col gap-2">
+        <div className="mb-6 flex flex-col gap-2 text-center">
           {/* title */}
-          <h2 className="md:text-xl font-bold">{currentQuestion.question}</h2>
+          <h2 className="font-bold md:text-xl">{currentQuestion?.question}</h2>
 
           {/* phrase */}
           <div className="text-muted-foreground text-sm">{phrase}</div>
         </div>
         <div className="space-y-3">
-          {shuffledOptions.map((option) => (
+          {shuffledOptions?.map((option) => (
             <button
               key={option}
               onClick={() => handleOptionSelect(option)}
               className={cn(
-                `w-full rounded-xl border-2 p-2 md:p-4 text-left transition-all font-semibold ${
+                `w-full rounded-xl border-2 p-2 text-left font-semibold transition-all md:p-4 ${
                   selectedOption === option
                     ? isAnswerChecked
                       ? checkCorrect(option)
-                        ? "border-primary bg-[#E5F8D3] text-primary"
-                        : "border-destructive bg-red-100 text-destructive"
+                        ? "border-primary text-primary bg-[#E5F8D3]"
+                        : "border-destructive text-destructive bg-red-100"
                       : "border-primary"
                     : "border-white/30 hover:border-gray-300"
                 }`,
@@ -136,9 +131,9 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
                 {isAnswerChecked && selectedOption === option && (
                   <span>
                     {checkCorrect(option) ? (
-                      <CheckCircle2 className="h-5 w-5 text-primary" />
+                      <CheckCircle2 className="text-primary h-5 w-5" />
                     ) : (
-                      <XCircle className="h-5 w-5 text-destructive" />
+                      <XCircle className="text-destructive h-5 w-5" />
                     )}
                   </span>
                 )}
@@ -161,8 +156,8 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
             <div
               className={`rounded-lg p-3 text-center ${
                 isCorrect
-                  ? "bg-[#E5F8D3] text-primary"
-                  : "bg-red-100 text-destructive"
+                  ? "text-primary bg-[#E5F8D3]"
+                  : "text-destructive bg-red-100"
               }`}
             >
               <p className="font-medium">
@@ -171,7 +166,7 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
               {!isCorrect && (
                 <p className="mt-1 text-sm">
                   The correct answer is:{" "}
-                  {currentQuestion.options.find((option) =>
+                  {currentQuestion?.options?.find((option) =>
                     checkCorrect(option),
                   )}
                 </p>

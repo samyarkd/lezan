@@ -18,6 +18,7 @@ export async function POST(
     return NextResponse.json(
       {
         message: "phrase is required",
+        ok: false,
       },
       { status: 400 },
     );
@@ -39,6 +40,7 @@ export async function POST(
 
   return NextResponse.json({
     message: "Quiz created successfully",
-    id: quiz.id,
+    output: { id: quiz.id },
+    ok: true,
   });
 }
