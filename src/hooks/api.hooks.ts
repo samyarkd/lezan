@@ -11,6 +11,7 @@ import { useSession } from "next-auth/react";
 import { toast } from "sonner";
 
 import { ClientError, sendApiRequest } from "~/lib/api.utils";
+import { base64ToArrayBuffer } from "~/lib/utils";
 import {
   flashcardsInputSchema,
   flashcardsOutputSchema,
@@ -204,7 +205,7 @@ export const useGenAudio = () => {
       });
 
       if (response.ok) {
-        const buffer = Buffer.from(response.output, "base64url");
+        const buffer = base64ToArrayBuffer(response.output);
 
         return new Blob([buffer], { type: "audio/mpeg" });
       }

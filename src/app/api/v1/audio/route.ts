@@ -49,7 +49,7 @@ export async function GET(
   const audioResponse = await generateAndUploadAudio(word.toString(), speed);
   const arrayBuf = await audioResponse.audioResult.arrayBuffer();
   const buffer = Buffer.from(arrayBuf);
-  const base64 = buffer.toString("base64url");
+  const base64 = buffer.toString("base64");
 
   return NextResponse.json(
     {
@@ -59,7 +59,6 @@ export async function GET(
     },
     {
       status: 200,
-      headers: { "Content-Type": "audio/mpeg" },
     },
   );
 }
