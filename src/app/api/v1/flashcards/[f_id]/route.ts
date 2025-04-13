@@ -50,7 +50,7 @@ import type { FlashcardDataGET } from "~/types/api.types";
 
 export async function POST(
   req: NextRequest,
-): Promise<FlashcardDataGET | Response> {
+): Promise<NextResponse<FlashcardDataGET> | Response> {
   const userId = (await auth())?.userId;
 
   const jsonBody = await req.json();

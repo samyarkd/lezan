@@ -8,7 +8,9 @@ import { db } from "~/server/db";
 import { quizModel } from "~/server/db/schema";
 import type { QuizDataGET } from "~/types/api.types";
 
-export async function POST(req: NextRequest): Promise<QuizDataGET | Response> {
+export async function POST(
+  req: NextRequest,
+): Promise<NextResponse<QuizDataGET> | Response> {
   console.log("GET /api/v1/quiz - Request received");
   const userId = (await auth())?.userId;
   const jsonBody = await req.json();

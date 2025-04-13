@@ -30,20 +30,24 @@ export function AppSidebar() {
             <span>Learning History</span> <History className="mt-px" />
           </SidebarGroupLabel>
           <SidebarContent>
-            {flashCardsHistory.data?.output?.map((historyItem) => (
-              <Link href={`/flashcards/${historyItem.id}`} key={historyItem.id}>
-                <Button
-                  variant="outline"
-                  className="relative flex w-full items-center justify-between"
+            {flashCardsHistory.data?.ok &&
+              flashCardsHistory.data?.output?.map((historyItem) => (
+                <Link
+                  href={`/flashcards/${historyItem.id}`}
+                  key={historyItem.id}
                 >
-                  <span className="truncate">{historyItem.phrase}</span>
-                  <span className="text-primary opacity-0 transition-all hover:opacity-100">
-                    <span className="absolute inset-0" />
-                    <ChevronRight />
-                  </span>
-                </Button>
-              </Link>
-            ))}
+                  <Button
+                    variant="outline"
+                    className="relative flex w-full items-center justify-between"
+                  >
+                    <span className="truncate">{historyItem.phrase}</span>
+                    <span className="text-primary opacity-0 transition-all hover:opacity-100">
+                      <span className="absolute inset-0" />
+                      <ChevronRight />
+                    </span>
+                  </Button>
+                </Link>
+              ))}
 
             {flashCardsHistory.isLoading && (
               <div className="text-muted-foreground my-auto flex min-h-96 items-center justify-center text-center">
