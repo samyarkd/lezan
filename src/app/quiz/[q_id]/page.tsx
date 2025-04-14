@@ -90,7 +90,7 @@ const QuizPage = () => {
   const quiz = quizParsed.data;
 
   return (
-    <div className="my-auto p-4">
+    <div className="my-auto max-w-3xl p-4">
       {!isFinished && (
         <QuestionCard phrase={quiz?.phrase} questions={quiz.questions} />
       )}

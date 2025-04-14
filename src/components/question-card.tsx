@@ -80,7 +80,7 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
     option === currentQuestion?.options[currentQuestion.correct_answer_index];
 
   return (
-    <Card className="m w-full shadow-lg sm:min-w-md lg:min-w-4xl">
+    <Card className="m w-full shadow-lg sm:min-w-md lg:min-w-2xl">
       <CardHeader className="border-b pb-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
