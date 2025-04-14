@@ -12,7 +12,7 @@ const LetterBackground: React.FC<{ children?: ReactNode }> = (props) => {
       const background = backgroundRef.current;
       if (!background) return; // Ensure ref is attached
 
-      const numberOfLetters = 70; // Adjust as needed
+      const numberOfLetters = 90; // Adjust as needed
 
       for (let i = 0; i < numberOfLetters; i++) {
         const letterSpan = document.createElement("span");
