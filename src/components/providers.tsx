@@ -26,21 +26,22 @@ export const Providers = (props: {
       <SessionProvider session={props.session}>
         <ThemeProvider defaultTheme="dark">
           <LetterBackground>
-            <SidebarProvider>
-              <AppSidebar />
-              <main className="relative flex min-h-[100svh] w-full flex-col items-center overflow-x-hidden">
-                <nav
-                  ref={navbarRef}
-                  className="bg-secondary sticky top-0 flex w-full items-center justify-between p-2 outline-1"
-                >
-                  <SidebarTrigger />
-                  <AuthButton />
-                </nav>
-                {props.children}
-              </main>
-            </SidebarProvider>
-            <Toaster />
-            <TurnstileVerifier />
+            <TurnstileVerifier>
+              <SidebarProvider>
+                <AppSidebar />
+                <main className="relative flex min-h-[100svh] w-full flex-col items-center overflow-x-hidden">
+                  <nav
+                    ref={navbarRef}
+                    className="bg-secondary sticky top-0 flex w-full items-center justify-between p-2 outline-1"
+                  >
+                    <SidebarTrigger />
+                    <AuthButton />
+                  </nav>
+                  {props.children}
+                </main>
+              </SidebarProvider>
+              <Toaster />
+            </TurnstileVerifier>
           </LetterBackground>
         </ThemeProvider>
       </SessionProvider>

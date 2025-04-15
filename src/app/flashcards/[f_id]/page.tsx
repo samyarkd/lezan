@@ -199,7 +199,7 @@ const Flashcards = () => {
   }, [errorCode]);
 
   useEffect(() => {
-    if (!flashcardsQuery.isLoading) {
+    if (flashcardsQuery.isLoading) {
       return;
     }
 

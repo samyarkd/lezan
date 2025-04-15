@@ -1,4 +1,5 @@
 {
   "workbench.colorTheme": "GitHub Light",
-  "workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue - No Italics)"
+  "workbench.preferredDarkColorTheme": "Winter is Coming (Dark Blue - No Italics)",
+  "typescript.tsdk": "node_modules/typescript/lib"
 }

@@ -77,13 +77,22 @@ export const useGetQuiz = (quizId: string) => {
 // ------------------------------
 // Flashcards API Hook
 // ------------------------------
+
 export const useCreateFlashcard = () => {
   const router = useRouter();
-
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationKey: ["gen-flashcards"],
+    mutationFn: async (input: FlashcardsApiInput) => {
+      // Parse input using Zod schema
+      const parsedInput = await flashcardsInputSchema.parseAsync(input);
+      // Make API request
+      return await sendApiRequest<FlashcardDataPOST>("/flashcards", {
+        method: "POST",
+        body: parsedInput,
+      });
+    },
     onError: (err) => {
       if (err instanceof ClientError) {
         console.error(err.message);
@@ -99,19 +108,9 @@ export const useCreateFlashcard = () => {
       if (res.ok) {
         router.push(`/flashcards/${res.output.id}`);
       }
-
       void queryClient.invalidateQueries({
         exact: true,
         queryKey: ["get-flashcards-history"],
-      });
-    },
-    mutationFn: async (input: FlashcardsApiInput) => {
-      // Parse input using Zod schema
-      const parsedInput = await flashcardsInputSchema.parseAsync(input);
-      // Make API request
-      return await sendApiRequest<FlashcardDataPOST>("/flashcards", {
-        method: "POST",
-        body: parsedInput,
       });
     },
   });
@@ -153,7 +152,6 @@ export const useGetFlashcard = (flashcardId: string) => {
  */
 export const useGetFlashcardsHistory = () => {
   const authedUser = useSession();
-
   return useQuery({
     queryKey: ["get-flashcards-history"],
     enabled: authedUser.status === "authenticated",
@@ -167,12 +165,10 @@ export const useGetFlashcardsHistory = () => {
           console.error(err.message);
           toast.error(err.message);
         }
-
         if (err instanceof Error) {
           console.error(err.message);
           toast.error(err.message);
         }
-
         throw err;
       }
     },
@@ -184,7 +180,6 @@ export const useGetFlashcardsHistory = () => {
  */
 export const useGenAudio = () => {
   const [speed, setSpeed] = useState<"normal" | "slow">("normal");
-
   return useMutation({
     gcTime: Infinity,
     mutationKey: ["gen-audio", speed],
@@ -193,10 +188,8 @@ export const useGenAudio = () => {
         method: "GET",
         params: { flashcardId: params.flashcardId, word: params.word, speed },
       });
-
       if (response.ok) {
         const buffer = base64ToArrayBuffer(response.output);
-
         return new Blob([buffer], { type: "audio/mpeg" });
       }
     },
@@ -204,8 +197,31 @@ export const useGenAudio = () => {
       toast.error(error.message);
     },
     onSuccess: () => {
-      // switch between slow and normal speed
+      // Switch between "normal" and "slow" speed after each successful audio generation
       setSpeed((prev) => (prev === "normal" ? "slow" : "normal"));
+    },
+  });
+};
+
+// ------------------------------
+// Turnstile Verification Hook
+// ------------------------------
+
+export const useVerifyTurnstile = () => {
+  return useMutation({
+    mutationKey: ["verify-turnstile"],
+    mutationFn: async (token: string) => {
+      const res = await fetch("/api/verify-turnstile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ token }),
+      });
+      if (!res.ok) {
+        throw new Error("Verification failed");
+      }
+    },
+    onError: (error) => {
+      toast.error(error?.message ?? "Turnstile verification failed");
     },
   });
 };

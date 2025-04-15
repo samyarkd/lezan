@@ -7,10 +7,7 @@ export const env = createEnv({
    * isn't built with invalid env vars.
    */
   server: {
-    AUTH_SECRET:
-      process.env.NODE_ENV === "production"
-        ? z.string()
-        : z.string().optional(),
+    AUTH_SECRET: z.string(),
     AUTH_DISCORD_ID: z.string(),
     AUTH_DISCORD_SECRET: z.string(),
     DATABASE_URL: z.string().url(),
@@ -22,6 +19,10 @@ export const env = createEnv({
     NODE_ENV: z
       .enum(["development", "test", "production"])
       .default("development"),
+    // turnstile
+    TURNSTILE_SECRET_KEY: z
+      .string()
+      .default("1x0000000000000000000000000000000AA"),
   },
 
   /**
@@ -31,6 +32,9 @@ export const env = createEnv({
    */
   client: {
     // NEXT_PUBLIC_CLIENTVAR: z.string(),
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: z
+      .string()
+      .default("1x00000000000000000000AA"),
   },
 
   /**
@@ -38,6 +42,7 @@ export const env = createEnv({
    * middlewares) or client-side so we need to destruct manually.
    */
   runtimeEnv: {
+    // SECRET STUFF
     AUTH_SECRET: process.env.AUTH_SECRET,
     AUTH_DISCORD_ID: process.env.AUTH_DISCORD_ID,
     AUTH_DISCORD_SECRET: process.env.AUTH_DISCORD_SECRET,
@@ -48,6 +53,9 @@ export const env = createEnv({
     AUTH_GOOGLE_ID: process.env.AUTH_GOOGLE_ID,
     AUTH_GOOGLE_SECRET: process.env.AUTH_GOOGLE_SECRET,
     NODE_ENV: process.env.NODE_ENV,
+    TURNSTILE_SECRET_KEY: process.env.TURNSTILE_SECRET_KEY,
+    // PUBLIC STUFF
+    NEXT_PUBLIC_TURNSTILE_SITE_KEY: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation. This is especially
