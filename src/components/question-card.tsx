@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useSetAtom } from "jotai";
 import { shuffle } from "lodash";
-import { CheckCircle2, XCircle } from "lucide-react";
+import { CheckCircle2, ChevronLeft, Layers, XCircle } from "lucide-react";
 import type { z } from "zod";
 
 import { Button } from "~/components/ui/button";
@@ -19,6 +20,8 @@ import { type quizOutputSchema } from "~/lib/zod/quiz.zod";
 type QuestionCardProps = z.infer<typeof quizOutputSchema>;
 
 export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
+  const router = useRouter();
+
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [isAnswerChecked, setIsAnswerChecked] = useState(false);
@@ -83,11 +86,22 @@ export default function QuestionCard({ questions, phrase }: QuestionCardProps) {
     <Card className="m w-full shadow-lg sm:min-w-md lg:min-w-2xl">
       <CardHeader className="border-b pb-3">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full text-white">
-              {currentQuestionIndex + 1}
+          <div className="flex items-center gap-10">
+            <div
+              onClick={() => {
+                router.back();
+              }}
+              className="text-primary flex cursor-pointer"
+            >
+              <ChevronLeft />
+              <Layers />
             </div>
-            <Progress value={progress} className="h-2 w-24" />
+            <div className="flex items-center gap-2">
+              <div className="bg-primary flex h-8 w-8 items-center justify-center rounded-full text-white">
+                {currentQuestionIndex + 1}
+              </div>
+              <Progress value={progress} className="h-2 w-24" />
+            </div>
           </div>
           <div
             className="flex items-center gap-2"
