@@ -17,7 +17,10 @@ Instructions:
 2. Vary the question types (e.g., translation, fill-in-the-blank, conjugation).
 3. For each question provide 3-4 options and indicate the correct answer by its index.
 4. Ensure the questions are relevant to the phrase provided and challenge the learner's understanding of the language.
-}`;
+}
+5. Only respond in with basic level English.
+6. If the prompt is in English provide a quiz in basic English to learn that English phrase.
+`;
 
   const response = streamObject({
     model: openaiSDK("o3-mini", { reasoningEffort: "low" }),

@@ -10,7 +10,12 @@ import { openaiSDK } from "./openai.ai";
 export async function generateFlashcards(phrase: string, f_id: string) {
   const userId = (await auth())?.userId;
 
-  const prompt = `You are an expert language teacher with deep insights into language instruction. Your task is to create flashcards for the phrase provided, where each flashcard shows a word and its translation. Phrase: ${phrase}`;
+  const prompt = `You are an expert language teacher with deep insights into language instruction. Your task is to create flashcards for the phrase provided, where each flashcard shows a word and its translation. Phrase: ${phrase}
+  
+  Instructions:
+1. Only respond in with basic level English.
+2. If the prompt is in English provide flashcards with explanation in basic English to learn that English phrase.
+  `;
 
   const response = streamObject({
     model: openaiSDK("o3-mini", { reasoningEffort: "low" }),
