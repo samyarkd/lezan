@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { and, eq } from "drizzle-orm";
 
 import { quizInputSchema } from "~/lib/zod/quiz.zod";
 import { auth } from "~/server/auth";
@@ -25,6 +26,27 @@ export async function POST(
   }
 
   const { phrase } = parsedResult.data;
+
+  const conditions = [];
+  conditions.push(eq(quizModel.phrase, phrase));
+  if (userId) {
+    conditions.push(eq(quizModel.userId, userId));
+  }
+
+  // Check if quiz already exists for the user with the same phrase
+  const [existingQuiz] = await db
+    .select({ id: quizModel.id })
+    .from(quizModel)
+    .where(and(...conditions))
+    .limit(1);
+
+  if (existingQuiz) {
+    return NextResponse.json({
+      message: "Quiz already exists",
+      output: { id: existingQuiz.id },
+      ok: true,
+    });
+  }
 
   const [quiz] = await db
     .insert(quizModel)

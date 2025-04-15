@@ -11,13 +11,11 @@ import type { QuizDataGET } from "~/types/api.types";
 export async function POST(
   req: NextRequest,
 ): Promise<NextResponse<QuizDataGET> | Response> {
-  console.log("GET /api/v1/quiz - Request received");
   const userId = (await auth())?.userId;
   const jsonBody = await req.json();
   const parsedBody = getQuizParams.safeParse(jsonBody);
 
   if (!parsedBody.success) {
-    console.log("[ERROR] Invalid quiz id");
     return NextResponse.json(
       { ok: false, message: "Invalid quiz id" },
       { status: 400 },
