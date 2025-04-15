@@ -2,154 +2,21 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { AudioLines, Dot } from "lucide-react";
-import { motion, useAnimate } from "motion/react";
+import { useAnimate } from "motion/react";
 
 import AnimatedSticker from "~/components/animated-stickers";
 import Typography from "~/components/typography";
 import { Button } from "~/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardFooter,
-  CardHeader,
-} from "~/components/ui/card";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   type CarouselApi,
 } from "~/components/ui/carousel";
-import { useCreateQuiz, useGenAudio, useGetFlashcard } from "~/hooks/api.hooks";
+import { useCreateQuiz, useGetFlashcard } from "~/hooks/api.hooks";
 import { cn } from "~/lib/utils";
 import { error_codes, type ERROR_TYPES } from "~/types/api.types";
-
-const ReadAudioButton: React.FC<{ flashcardId: string; word: string }> = ({
-  flashcardId,
-  word,
-}) => {
-  const { mutateAsync, isPending } = useGenAudio();
-  const handlePlay = async (e: React.MouseEvent) => {
-    e.stopPropagation();
-    try {
-      const blob = await mutateAsync({ flashcardId, word });
-      if (!blob) {
-        return;
-      }
-      const url = URL.createObjectURL(blob);
-      const audio = new Audio(url);
-      await audio.play();
-    } catch {
-      // Error is handled via hook notifications
-    }
-  };
-  return (
-    <Button
-      variant="ghost"
-      onClick={handlePlay}
-      className="py-8"
-      disabled={isPending}
-    >
-      <AudioLines className="text-muted-foreground !h-11 !w-11" size={40} />
-    </Button>
-  );
-};
-
-const Flashcard: React.FC<{
-  content: Partial<{
-    note: string;
-    word: string;
-    translation: string;
-  }>;
-  flashcardId: string;
-}> = (props) => {
-  const { note, word, translation } = props.content;
-  const { flashcardId } = props;
-  const [flip, setFlip] = useState(true);
-  const handleClick = () => setFlip((prev) => !prev);
-
-  return (
-    <div
-      className="flex items-center justify-center p-5"
-      style={{ perspective: "1000px" }}
-    >
-      <motion.div
-        style={{
-          width: "20rem",
-          minHeight: "20rem",
-          position: "relative",
-          transformStyle: "preserve-3d",
-        }}
-        animate={{ rotateY: flip ? 0 : 180 }}
-        transition={{ duration: 0.7 }}
-      >
-        <Dot
-          className="absolute top-0 left-1/2 z-10 -translate-1/2 text-lime-600"
-          size={50}
-        />
-        <div
-          className="front"
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            backfaceVisibility: "hidden",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "pointer",
-          }}
-        >
-          <Card
-            onClick={handleClick}
-            className="flex h-full w-full flex-col items-center justify-between text-center"
-          >
-            <CardHeader>
-              <Typography variant="h1">Word</Typography>
-            </CardHeader>
-            <CardContent>
-              <Typography variant="p">{word}</Typography>
-            </CardContent>
-            <CardFooter>
-              {word && (
-                <ReadAudioButton flashcardId={flashcardId} word={word} />
-              )}
-            </CardFooter>
-          </Card>
-        </div>
-        <div
-          className="back"
-          style={{
-            position: "absolute",
-            width: "100%",
-            height: "100%",
-            backfaceVisibility: "hidden",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transform: "rotateY(180deg)",
-            cursor: "pointer",
-          }}
-        >
-          <Card
-            onClick={handleClick}
-            className="flex h-full w-full flex-col items-center justify-between text-center"
-          >
-            <CardHeader>
-              <Typography variant="h1">Translation</Typography>
-            </CardHeader>
-            <CardContent>
-              <Typography variant="p">{translation}</Typography>
-            </CardContent>
-            <CardFooter className="flex flex-col">
-              <Typography variant="muted">{note}</Typography>
-            </CardFooter>
-          </Card>
-        </div>
-      </motion.div>
-    </div>
-  );
-};
+import { Flashcard } from "./flashcard";
 
 const Flashcards = () => {
   // PARAMS
@@ -199,7 +66,7 @@ const Flashcards = () => {
   }, [errorCode]);
 
   useEffect(() => {
-    if (flashcardsQuery.isLoading) {
+    if (flashcardsQuery.isLoading || !scope.current) {
       return;
     }
 
