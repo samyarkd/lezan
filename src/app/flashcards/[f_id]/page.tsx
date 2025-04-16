@@ -44,6 +44,8 @@ const Flashcards = () => {
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [isMoving, setIsMoving] = useState(false);
   const [scope, animate] = useAnimate();
+  // Track submission state to avoid duplicate requests
+  const [submitted, setSubmitted] = useState(false);
 
   // OTHERS
   const router = useRouter();
@@ -100,11 +102,24 @@ const Flashcards = () => {
     );
   }, [current]);
 
+  // Submit flashcard fetch once, then retry if stopped loading without error but invalid data
   useEffect(() => {
     if (!f_id) return;
-
-    flashcardsQuery.submit({ flashcards_id: f_id });
-  }, [f_id]);
+    if (!submitted) {
+      flashcardsQuery.submit({ flashcards_id: f_id });
+      setSubmitted(true);
+    }
+  }, [f_id, submitted]);
+  useEffect(() => {
+    if (
+      submitted &&
+      !flashcardsQuery.isLoading &&
+      !flashcardsQuery.error &&
+      !flashcardsParsed.success
+    ) {
+      flashcardsQuery.submit({ flashcards_id: f_id });
+    }
+  }, [submitted, flashcardsQuery.isLoading, flashcardsQuery.error, flashcardsParsed.success, f_id]);
 
   useEffect(() => {
     if (!api) {

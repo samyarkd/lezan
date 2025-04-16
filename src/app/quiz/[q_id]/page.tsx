@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useAtom } from "jotai";
 
@@ -25,6 +25,8 @@ const QuizPage = () => {
 
   // API HOOKS
   const quizQuery = useGetQuiz(q_id);
+  // Track submission state to avoid duplicate requests
+  const [submitted, setSubmitted] = useState(false);
 
   // QUIZ DATA: parse fetched object when it changes
   const quizParsed = useMemo(() => {
@@ -50,13 +52,27 @@ const QuizPage = () => {
   }, [quizQuery.error]);
 
   // ---------- USEEFFECTS: fetch quiz on mount or q_id change ------------- //
+  // Submit quiz fetch once, then retry if stopped loading without error but invalid data
   useEffect(() => {
     if (!q_id) return;
-    quizQuery.submit({ quiz_id: q_id });
+    if (!submitted) {
+      quizQuery.submit({ quiz_id: q_id });
+      setSubmitted(true);
+    }
     return () => {
       setIsFinished(false);
     };
-  }, [q_id]);
+  }, [q_id, submitted]);
+  useEffect(() => {
+    if (
+      submitted &&
+      !quizQuery.isLoading &&
+      !quizQuery.error &&
+      !quizParsed.success
+    ) {
+      quizQuery.submit({ quiz_id: q_id });
+    }
+  }, [submitted, quizQuery.isLoading, quizQuery.error, quizParsed.success, q_id]);
 
   useEffect(() => {
     if (errorCode === "NOT_FOUND") {
