@@ -23,7 +23,7 @@ Instructions:
 `;
 
   const response = streamObject({
-    model: openaiSDK("o3-mini", { reasoningEffort: "low" }),
+    model: openaiSDK("o4-mini", { reasoningEffort: "low" }),
     prompt,
     schema: quizOutputSchema,
     async onFinish(event) {

@@ -18,7 +18,7 @@ export async function generateFlashcards(phrase: string, f_id: string) {
   `;
 
   const response = streamObject({
-    model: openaiSDK("o3-mini", { reasoningEffort: "low" }),
+    model: openaiSDK("o4-mini", { reasoningEffort: "low" }),
     prompt,
     schema: flashcardsOutputSchema,
     async onFinish(event) {
