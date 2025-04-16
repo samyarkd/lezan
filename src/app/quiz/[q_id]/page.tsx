@@ -72,7 +72,13 @@ const QuizPage = () => {
     ) {
       quizQuery.submit({ quiz_id: q_id });
     }
-  }, [submitted, quizQuery.isLoading, quizQuery.error, quizParsed.success, q_id]);
+  }, [
+    submitted,
+    quizQuery.isLoading,
+    quizQuery.error,
+    quizParsed.success,
+    q_id,
+  ]);
 
   useEffect(() => {
     if (errorCode === "NOT_FOUND") {

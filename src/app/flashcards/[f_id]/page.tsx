@@ -119,7 +119,13 @@ const Flashcards = () => {
     ) {
       flashcardsQuery.submit({ flashcards_id: f_id });
     }
-  }, [submitted, flashcardsQuery.isLoading, flashcardsQuery.error, flashcardsParsed.success, f_id]);
+  }, [
+    submitted,
+    flashcardsQuery.isLoading,
+    flashcardsQuery.error,
+    flashcardsParsed.success,
+    f_id,
+  ]);
 
   useEffect(() => {
     if (!api) {
