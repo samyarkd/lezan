@@ -26,11 +26,10 @@ const QuizPage = () => {
   // API HOOKS
   const quizQuery = useGetQuiz(q_id);
 
-  // QUIZ DATA
-  // We are doing this because of typesafety
+  // QUIZ DATA: parse fetched object when it changes
   const quizParsed = useMemo(() => {
     return quizOutputSchema.safeParse(quizQuery.object);
-  }, [quizQuery.isLoading]);
+  }, [quizQuery.object]);
 
   const errorCode: ERROR_TYPES = useMemo(() => {
     try {
@@ -50,14 +49,14 @@ const QuizPage = () => {
     }
   }, [quizQuery.error]);
 
-  // ---------- USEEFFECTS ------------- //
+  // ---------- USEEFFECTS: fetch quiz on mount or q_id change ------------- //
   useEffect(() => {
+    if (!q_id) return;
     quizQuery.submit({ quiz_id: q_id });
-
     return () => {
       setIsFinished(false);
     };
-  }, []);
+  }, [q_id, quizQuery.submit, setIsFinished]);
 
   useEffect(() => {
     if (errorCode === "NOT_FOUND") {
@@ -71,19 +70,19 @@ const QuizPage = () => {
     }
   }, [quizQuery.isLoading, quizParsed.success]);
 
-  if (quizQuery.isLoading || !quizQuery.object) {
+  // While loading or data not yet parsed into a valid quiz, show loader
+  if (quizQuery.isLoading || !quizParsed.success) {
     return (
       <AnimatedSticker
-        data={{
-          src: "/ass/running_dog.json",
-        }}
+        data={{ src: "/ass/running_dog.json" }}
         title="Fetching the Quiz"
         desc="Loading the generated quiz"
       />
     );
   }
 
-  if (!quizParsed.success || quizQuery.error) {
+  // On error after loading, bail out (redirects handled in effects)
+  if (quizQuery.error) {
     return null;
   }
 
