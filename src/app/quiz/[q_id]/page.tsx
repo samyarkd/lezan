@@ -29,7 +29,7 @@ const QuizPage = () => {
   // QUIZ DATA: parse fetched object when it changes
   const quizParsed = useMemo(() => {
     return quizOutputSchema.safeParse(quizQuery.object);
-  }, [quizQuery.object]);
+  }, [quizQuery.object?.questions?.length]);
 
   const errorCode: ERROR_TYPES = useMemo(() => {
     try {
@@ -56,7 +56,7 @@ const QuizPage = () => {
     return () => {
       setIsFinished(false);
     };
-  }, [q_id, quizQuery.submit, setIsFinished]);
+  }, [q_id]);
 
   useEffect(() => {
     if (errorCode === "NOT_FOUND") {
