@@ -15,9 +15,9 @@ import {
 } from "~/components/ui/carousel";
 import { useCreateQuiz, useGetFlashcard } from "~/hooks/api.hooks";
 import { cn } from "~/lib/utils";
+import { flashcardsOutputSchema } from "~/lib/zod/flashcards.zod";
 import { error_codes, type ERROR_TYPES } from "~/types/api.types";
 import { Flashcard } from "./flashcard";
-import { flashcardsOutputSchema } from "~/lib/zod/flashcards.zod";
 
 const Flashcards = () => {
   // PARAMS
@@ -30,10 +30,12 @@ const Flashcards = () => {
   // FLASHCARDS DATA: parse fetched object when it changes
   const flashcardsParsed = useMemo(
     () => flashcardsOutputSchema.safeParse(flashcardsQuery.object),
-    [flashcardsQuery.object],
+    [flashcardsQuery.object?.items?.length],
   );
 
-  const flashcards = flashcardsParsed.success ? flashcardsParsed.data : undefined;
+  const flashcards = flashcardsParsed.success
+    ? flashcardsParsed.data
+    : undefined;
 
   // STATE HOOKS
   const [api, setApi] = useState<CarouselApi>();
@@ -100,8 +102,9 @@ const Flashcards = () => {
 
   useEffect(() => {
     if (!f_id) return;
+
     flashcardsQuery.submit({ flashcards_id: f_id });
-  }, [f_id, flashcardsQuery.submit]);
+  }, [f_id]);
 
   useEffect(() => {
     if (!api) {
