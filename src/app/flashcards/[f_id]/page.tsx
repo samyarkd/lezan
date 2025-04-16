@@ -17,6 +17,7 @@ import { useCreateQuiz, useGetFlashcard } from "~/hooks/api.hooks";
 import { cn } from "~/lib/utils";
 import { error_codes, type ERROR_TYPES } from "~/types/api.types";
 import { Flashcard } from "./flashcard";
+import { flashcardsOutputSchema } from "~/lib/zod/flashcards.zod";
 
 const Flashcards = () => {
   // PARAMS
@@ -25,6 +26,14 @@ const Flashcards = () => {
   // API HOOKS
   const flashcardsQuery = useGetFlashcard(f_id);
   const generateQuiz = useCreateQuiz();
+
+  // FLASHCARDS DATA: parse fetched object when it changes
+  const flashcardsParsed = useMemo(
+    () => flashcardsOutputSchema.safeParse(flashcardsQuery.object),
+    [flashcardsQuery.object],
+  );
+
+  const flashcards = flashcardsParsed.success ? flashcardsParsed.data : undefined;
 
   // STATE HOOKS
   const [api, setApi] = useState<CarouselApi>();
@@ -37,7 +46,7 @@ const Flashcards = () => {
   // OTHERS
   const router = useRouter();
 
-  const flashcards = flashcardsQuery.object;
+  // replaced by parsed data above
   const flashcardsItems = flashcards?.items;
   const isLastCard = current === (flashcardsItems?.length ?? 0);
 
@@ -90,8 +99,9 @@ const Flashcards = () => {
   }, [current]);
 
   useEffect(() => {
+    if (!f_id) return;
     flashcardsQuery.submit({ flashcards_id: f_id });
-  }, []);
+  }, [f_id, flashcardsQuery.submit]);
 
   useEffect(() => {
     if (!api) {
@@ -124,7 +134,8 @@ const Flashcards = () => {
     }
   }
 
-  if (flashcardsQuery.isLoading || !flashcardsQuery.object) {
+  // While loading or data not yet parsed into a valid flashcard, show loader
+  if (flashcardsQuery.isLoading || !flashcardsParsed.success) {
     return (
       <AnimatedSticker
         title="Fetching"
@@ -134,6 +145,11 @@ const Flashcards = () => {
         }}
       />
     );
+  }
+
+  // On error after loading, bail out (redirect handled in effects)
+  if (flashcardsQuery.error) {
+    return null;
   }
 
   if (generateQuiz?.status === "pending") {
