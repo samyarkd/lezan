@@ -29,7 +29,6 @@ import type {
   QuizDataPOST,
   ResponseData,
 } from "~/types/api.types";
-import type { FlashcardAiResult } from "~/types/flashcards.types";
 
 // Initialize Hono client
 
@@ -186,9 +185,18 @@ export const useGetRandomFlashcards = () => {
   return useQuery({
     queryKey: ["get-random-flashcards"],
     enabled: authedUser.status === "authenticated",
-    queryFn: async (): Promise<ResponseData<FlashcardAiResult>> => {
+    queryFn: async () => {
       try {
-        return await sendApiRequest<ResponseData<FlashcardAiResult>>( "/flashcards/random", { method: "GET" });
+        return await sendApiRequest<
+          ResponseData<{
+            items: {
+              id: string;
+              note?: string | undefined;
+              translation?: string | undefined;
+              word?: string | undefined;
+            }[];
+          }>
+        >("/flashcards/random", { method: "GET" });
       } catch (err) {
         if (err instanceof ClientError) {
           console.error(err.message);

@@ -55,7 +55,7 @@ const RandomFlashcardsPage: React.FC = () => {
         <CarouselContent>
           {items.map((i, idx) => (
             <CarouselItem key={idx}>
-              <Flashcard content={i} flashcardId="" />
+              <Flashcard content={i} flashcardId={i.id} />
             </CarouselItem>
           ))}
         </CarouselContent>

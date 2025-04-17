@@ -17,6 +17,8 @@ export async function GET(
       Object.fromEntries(req.nextUrl.searchParams.entries()),
     );
   } catch (err) {
+    console.log("ERROR_AUDIO", err);
+
     return NextResponse.json(
       { ok: false, message: "Invalid query parameters" },
       { status: 400 },

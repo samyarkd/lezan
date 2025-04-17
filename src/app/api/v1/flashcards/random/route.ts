@@ -21,7 +21,7 @@ export async function GET(_req: NextRequest) {
 
   // Select 10 random completed flashcard entries for this user
   const rows = await db
-    .select({ data: flashcardsModel.data })
+    .select({ data: flashcardsModel.data, id: flashcardsModel.id })
     .from(flashcardsModel)
     .where(
       and(
@@ -34,12 +34,12 @@ export async function GET(_req: NextRequest) {
 
   // Pick one random item from each flashcard set
   const items = rows.flatMap((row) => {
-    const arr = row.data.items;
+    const arr = row.data?.items;
     if (!Array.isArray(arr) || arr.length === 0) {
       return [];
     }
     const idx = Math.floor(Math.random() * arr.length);
-    return [arr[idx]];
+    return [{ ...arr[idx], id: row.id }];
   });
 
   const output = {
@@ -53,3 +53,4 @@ export async function GET(_req: NextRequest) {
     { status: 200 },
   );
 }
+

@@ -10,6 +10,7 @@ export const ReadWordButton: React.FC<{
   word: string;
 }> = ({ flashcardId, word }) => {
   const { mutateAsync, isPending } = useGenAudio();
+
   const handlePlay = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
