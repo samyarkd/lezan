@@ -5,7 +5,7 @@ import * as jose from "jose";
 import { env } from "~/env";
 
 const COOKIE_NAME = "turnstile_token_verified";
-const COOKIE_MAX_AGE = 3600; // 1 hour
+const COOKIE_MAX_AGE = 3600 * 3; // 3 hour
 
 export async function POST(req: NextRequest) {
   try {
@@ -52,6 +52,7 @@ export async function POST(req: NextRequest) {
       sameSite: "strict",
       secure: process.env.NODE_ENV === "production",
       maxAge: COOKIE_MAX_AGE,
+      expires: COOKIE_MAX_AGE,
       path: "/",
     });
 
