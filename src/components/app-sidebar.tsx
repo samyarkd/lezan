@@ -31,9 +31,7 @@ export function AppSidebar() {
           </SidebarGroupLabel>
           <SidebarContent>
             <Link href="/flashcards/random" className="text-center">
-              <Button className="w-full">
-                Review Random Flashcards
-              </Button>
+              <Button className="w-full">Review Random Flashcards</Button>
             </Link>
             {flashCardsHistory.data?.ok &&
               flashCardsHistory.data?.output?.map((historyItem) => (
@@ -76,7 +74,7 @@ export function AppSidebar() {
           rel="noreferrer"
           className="text-center"
         >
-          <Button variant="link">Submit a Feedback</Button>
+          <Button variant="link">Submit Feedback</Button>
         </a>
       </SidebarFooter>
     </Sidebar>
