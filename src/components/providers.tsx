@@ -18,6 +18,7 @@ const queryClient = new QueryClient();
 export const Providers = (props: {
   children: ReactNode;
   session: Session | null;
+  isVerified: boolean;
 }) => {
   const navbarRef = useRef<HTMLElement>(null);
 
@@ -26,7 +27,7 @@ export const Providers = (props: {
       <SessionProvider session={props.session}>
         <ThemeProvider defaultTheme="dark">
           <LetterBackground>
-            <TurnstileVerifier>
+            <TurnstileVerifier isVerified={props.isVerified}>
               <SidebarProvider>
                 <AppSidebar />
                 <main className="relative flex min-h-[100svh] w-full flex-col items-center overflow-x-hidden">

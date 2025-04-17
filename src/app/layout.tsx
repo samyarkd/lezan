@@ -2,8 +2,12 @@ import "~/styles/globals.css";
 
 import { type Metadata } from "next";
 import { Geist } from "next/font/google";
+import { cookies } from "next/headers";
+import * as jose from "jose";
 
 import { Providers } from "~/components/providers";
+import { env } from "~/env";
+import { TURNSTILE_COOKIE_NAME } from "~/lib/constants.global";
 import { auth } from "~/server/auth";
 
 export const metadata: Metadata = {
@@ -27,6 +31,21 @@ export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   const session = await auth();
+
+  const reqCookies = await cookies();
+  let isVerified = false;
+  const token = reqCookies.get(TURNSTILE_COOKIE_NAME)?.value;
+
+  if (token) {
+    try {
+      const secret = new TextEncoder().encode(env.AUTH_SECRET);
+      await jose.jwtVerify(token, secret);
+      isVerified = true;
+    } catch {
+      isVerified = false;
+    }
+  }
+
   return (
     <html
       lang="en"
@@ -35,7 +54,9 @@ export default async function RootLayout({
       data-lt-installed="true"
     >
       <body cz-shortcut-listen="true">
-        <Providers session={session}>{children}</Providers>
+        <Providers isVerified={isVerified} session={session}>
+          {children}
+        </Providers>
       </body>
     </html>
   );

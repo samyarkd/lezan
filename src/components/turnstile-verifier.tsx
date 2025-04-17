@@ -17,12 +17,16 @@ import { turnstileTokenAtom } from "~/lib/storage/global.atom";
 
 interface TurnstileVerifierProps {
   children: ReactNode;
+  isVerified: boolean;
 }
 
-const TurnstileVerifier = ({ children }: TurnstileVerifierProps) => {
+const TurnstileVerifier = ({
+  children,
+  isVerified,
+}: TurnstileVerifierProps) => {
   const [open, setOpen] = useState(true);
   const [loading, setLoading] = useState(true);
-  const [verified, setVerified] = useState(false);
+  const [verified, setVerified] = useState(isVerified);
   const setTurnstileToken = useSetAtom(turnstileTokenAtom);
 
   const verifyTurnstile = useVerifyTurnstile();
