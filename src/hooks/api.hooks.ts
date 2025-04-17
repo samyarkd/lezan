@@ -27,7 +27,9 @@ import type {
   FlashcardHistory,
   GetAudioResponse,
   QuizDataPOST,
+  ResponseData,
 } from "~/types/api.types";
+import type { FlashcardAiResult } from "~/types/flashcards.types";
 
 // Initialize Hono client
 
@@ -160,6 +162,33 @@ export const useGetFlashcardsHistory = () => {
         return await sendApiRequest<FlashcardHistory>("/flashcards", {
           method: "GET",
         });
+      } catch (err) {
+        if (err instanceof ClientError) {
+          console.error(err.message);
+          toast.error(err.message);
+        }
+        if (err instanceof Error) {
+          console.error(err.message);
+          toast.error(err.message);
+        }
+        throw err;
+      }
+    },
+  });
+};
+
+/**
+ * @function useGetRandomFlashcards
+ * @description Fetches a random selection of flashcards for review.
+ */
+export const useGetRandomFlashcards = () => {
+  const authedUser = useSession();
+  return useQuery({
+    queryKey: ["get-random-flashcards"],
+    enabled: authedUser.status === "authenticated",
+    queryFn: async (): Promise<ResponseData<FlashcardAiResult>> => {
+      try {
+        return await sendApiRequest<ResponseData<FlashcardAiResult>>( "/flashcards/random", { method: "GET" });
       } catch (err) {
         if (err instanceof ClientError) {
           console.error(err.message);

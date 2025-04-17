@@ -30,6 +30,11 @@ export function AppSidebar() {
             <span>Learning History</span> <History className="mt-px" />
           </SidebarGroupLabel>
           <SidebarContent>
+            <Link href="/flashcards/random" className="text-center">
+              <Button className="w-full">
+                Review Random Flashcards
+              </Button>
+            </Link>
             {flashCardsHistory.data?.ok &&
               flashCardsHistory.data?.output?.map((historyItem) => (
                 <Link
