@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSession } from "next-auth/react";
+import Link from "next/link";
+import { signIn, useSession } from "next-auth/react";
 
 import { Flashcard } from "~/app/flashcards/[f_id]/flashcard";
 import AnimatedSticker from "~/components/animated-stickers";
@@ -37,11 +38,20 @@ const RandomFlashcardsPage: React.FC = () => {
 
   if (authedUser.status !== "authenticated") {
     return (
-      <AnimatedSticker
-        title="Sign In"
-        desc="This feature requires you to SignIn for accessing it."
-        data={{ src: "/ass/waving_dog.json" }}
-      />
+      <div className="my-auto flex flex-col gap-1">
+        <AnimatedSticker
+          title="Sign In"
+          desc="This feature requires you to Sign In for accessing it."
+          data={{ src: "/ass/waving_dog.json" }}
+        />
+        <Button onClick={() => signIn()}>Sign In</Button>
+
+        <Link href="/" className="w-full">
+          <Button variant="link" className="w-full">
+            Back to Main Page
+          </Button>
+        </Link>
+      </div>
     );
   }
 
