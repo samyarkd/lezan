@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSession } from "next-auth/react";
 
 import { Flashcard } from "~/app/flashcards/[f_id]/flashcard";
 import AnimatedSticker from "~/components/animated-stickers";
@@ -19,6 +20,7 @@ const RandomFlashcardsPage: React.FC = () => {
   const [api, setApi] = useState<CarouselApi>();
   const [canScrollNext, setCanScrollNext] = useState(false);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
+  const authedUser = useSession();
 
   useEffect(() => {
     if (!api) return;
@@ -32,6 +34,16 @@ const RandomFlashcardsPage: React.FC = () => {
       api.off("select", updateStates);
     };
   }, [api]);
+
+  if (authedUser.status !== "authenticated") {
+    return (
+      <AnimatedSticker
+        title="Sign In"
+        desc="This feature requires you to SignIn for accessing it."
+        data={{ src: "/ass/waving_dog.json" }}
+      />
+    );
+  }
 
   if (randomQuery.isFetching) {
     return (
