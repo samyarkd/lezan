@@ -12,6 +12,7 @@ import {
 } from "~/components/ui/sidebar";
 import { useGetFlashcardsHistory } from "~/hooks/api.hooks";
 import { Button } from "./ui/button";
+import VideoDemo from "./video-demo";
 
 export function AppSidebar() {
   const auth = useSession();
@@ -61,6 +62,8 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
       <SidebarFooter>
+        {/* Demo Video */}
+        <VideoDemo />
         {/* new Phrase */}
         <Link href="/" className="text-center">
           <Button className="w-full" size="sm">
