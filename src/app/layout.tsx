@@ -9,7 +9,7 @@ import { auth } from "~/server/auth";
 export const metadata: Metadata = {
   title: "Lezan | Learn a new phrase/word with AI",
   description:
-    "Lezano is an AI language assistant that helps intermediate learners improve their language skills through daily phrases and sentences from various sources like music, books, and more. Generate flashcards, take quizzes, and track your progress.",
+    "Lezan is an AI language assistant that helps intermediate learners improve their language skills through daily phrases and sentences from various sources like music, books, and more. Generate flashcards, take quizzes, and track your progress.",
   icons: [
     {
       rel: "icon",
